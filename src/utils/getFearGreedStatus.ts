@@ -1,10 +1,17 @@
 type FearGreedStatus = {
-    text: 'Extreme Fear' | 'Fear' | 'Neutral' | 'Greed' | 'Extreme Greed';
+    text: 'Extreme Fear' | 'Fear' | 'Neutral' | 'Greed' | 'Extreme Greed' | 'Loading';
     color: string;
     bgColor: string;
 };
 
-export const getFearGreedStatus = (index: number): FearGreedStatus => {
+export const getFearGreedStatus = (index: number | undefined): FearGreedStatus => {
+    if (!index) {
+        return {
+            text: 'Loading',
+            color: '#9ca3af',
+            bgColor: 'rgba(107, 114, 128, 0.1)',
+        }
+    }
     if (index <= 25) {
         return {
             text: 'Extreme Fear',

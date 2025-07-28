@@ -8,6 +8,7 @@ import { getFearGreedStatus } from '@/utils/getFearGreedStatus';
 import { getAltcoinStatus } from '@/utils/getAltcoinStatus';
 import { AddTokenToBuyAnalyzerForm } from '@/components/AddTokenToBuyAnalyzerForm';
 import { useAddTokenToBuyAnalyzer, useCryptoBuyAnalyzer } from '@/react-query/useCryptoBuyAnalyzer';
+import { useCoinmarketcap } from "@/react-query/useCoinmarketcap";
 
 interface TokenInputForm {
   tokenName: string;
@@ -36,11 +37,12 @@ interface TokenData {
 
 const CryptoBuyAnalyzer: React.FC = () => {
   const { data: tokens = [] } = useCryptoBuyAnalyzer();
+  const { data: cmcData } = useCoinmarketcap();
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
 
-  const [fearGreedIndex, setFearGreedIndex] = useState<number>(42);
+  // todo: replace with real data
   const [altcoinIndex, setAltcoinIndex] = useState<number>(68);
 
   const addMutation = useAddTokenToBuyAnalyzer();
@@ -65,20 +67,20 @@ const CryptoBuyAnalyzer: React.FC = () => {
     setLoading(true);
 
     try {
-      const tokensWithData = tokens.filter((inv: any) => inv.allTimeLow && inv.allTimeHigh && inv.symbol);
+      const tokensWithData = tokens.filter((inv) => inv.allTimeLow && inv.allTimeHigh && inv.symbol);
 
       if (tokensWithData.length === 0) {
         setAnalyzedTokens([]);
         return;
       }
 
-      const uniqueSymbols = [...new Set(tokensWithData.map((inv: any) => inv.symbol))];
+      const uniqueSymbols = [...new Set(tokensWithData.map((inv) => inv.symbol))];
       const priceData = await fetchPrices(uniqueSymbols);
 
-      const analyzed: TokenData[] = tokensWithData.map((inv: any) => {
+      const analyzed: TokenData[] = tokensWithData.map((inv ) => {
         const currentPrice = priceData[inv.symbol]?.usd ?? 0;
-        const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow, inv.allTimeHigh);
-        const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow, inv.oneYearHigh);
+        const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
+        const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
         const piBuySignal = getBuySignal(priceIndex);
         const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
 
@@ -97,7 +99,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
           oneYearLow: inv.oneYearLow,
           oneYearHigh: inv.oneYearHigh,
         };
-      });
+      }) as TokenData[];
 
       const uniqueAnalyzed = analyzed.filter((token, index, self) =>
           index === self.findIndex((t) => t.symbol === token.symbol)
@@ -143,10 +145,10 @@ const CryptoBuyAnalyzer: React.FC = () => {
       const newToken = {
         tokenName,
         symbol: symbol.toLowerCase(),
-        allTimeLow,
-        allTimeHigh,
-        oneYearLow,
-        oneYearHigh,
+        allTimeLow: Number(allTimeLow),
+        allTimeHigh: Number(allTimeHigh),
+        oneYearLow: Number(oneYearLow),
+        oneYearHigh: Number(oneYearHigh),
         currentPrice,
         priceIndex,
         oneYearPriceIndex,
@@ -172,7 +174,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
     }
   };
 
-  const fearGreedStatus = getFearGreedStatus(fearGreedIndex);
+  const fearGreedStatus = getFearGreedStatus(cmcData?.fearGreedIndex?.value);
   const altcoinStatus = getAltcoinStatus(altcoinIndex);
 
   return (
@@ -216,7 +218,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
                   <span className="text-base font-semibold text-slate-200">Fear &amp; Greed Index</span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="text-4xl font-extrabold leading-none text-slate-50">{fearGreedIndex}</span>
+                  <span className="text-4xl font-extrabold leading-none text-slate-50">{cmcData?.fearGreedIndex?.value}</span>
                   <div
                       className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold w-fit"
                       style={{
@@ -224,7 +226,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
                         backgroundColor: fearGreedStatus.bgColor,
                       }}
                   >
-                    {fearGreedStatus.text}
+                    {cmcData?.fearGreedIndex?.classification}
                   </div>
                 </div>
               </div>

@@ -3,10 +3,10 @@ import React from 'react';
 interface TokenFormData {
     tokenName: string;
     symbol: string;
-    allTimeLow?: number | string;
-    allTimeHigh?: number | string;
-    oneYearLow?: number | string;
-    oneYearHigh?: number | string;
+    allTimeLow: string;
+    allTimeHigh: string;
+    oneYearLow: string;
+    oneYearHigh: string;
 }
 
 interface AddTokenToBuyAnalyzerFormProps {
@@ -14,18 +14,16 @@ interface AddTokenToBuyAnalyzerFormProps {
     setFormData: (data: TokenFormData) => void;
     handleSubmit: () => void;
     loading: boolean;
-    editingInvestment: boolean;
     setShowAddForm: (show: boolean) => void;
 }
 
 export const AddTokenToBuyAnalyzerForm: React.FC<AddTokenToBuyAnalyzerFormProps> = ({
-                                                                                        formData,
-                                                                                        setFormData,
-                                                                                        handleSubmit,
-                                                                                        loading,
-                                                                                        editingInvestment,
-                                                                                        setShowAddForm,
-                                                                                    }) => {
+    formData,
+    setFormData,
+    handleSubmit,
+    loading,
+    setShowAddForm,
+}) => {
     const handleCancel = () => {
         setShowAddForm(false);
     };
@@ -33,7 +31,7 @@ export const AddTokenToBuyAnalyzerForm: React.FC<AddTokenToBuyAnalyzerFormProps>
     return (
         <div className="mt-6 mb-6 rounded-2xl border border-white/40 bg-gray-900/80 p-6 shadow-lg backdrop-blur-sm">
             <h2 className="mb-5 text-xl font-bold text-white">
-                {editingInvestment ? 'Edit Investment' : 'Add New Investment'}
+                Add New Token
             </h2>
 
             <div className="mb-5 grid gap-4 md:grid-cols-2">
@@ -67,7 +65,7 @@ export const AddTokenToBuyAnalyzerForm: React.FC<AddTokenToBuyAnalyzerFormProps>
                     className={`rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-700
                   ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    {editingInvestment ? 'Update Token' : 'Add Token'}
+                    Add Token
                 </button>
                 <button
                     onClick={handleCancel}
