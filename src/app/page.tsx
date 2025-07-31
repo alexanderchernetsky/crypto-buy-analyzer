@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import {TrendingUp, RefreshCw, Plus, Trash2} from 'lucide-react';
+import {TrendingUp, RefreshCw, Plus, Trash2, BarChart3} from 'lucide-react';
+import Link from 'next/link';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
@@ -204,7 +205,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   };
 
   return (
-      <>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
@@ -214,6 +215,13 @@ const CryptoBuyAnalyzer: React.FC = () => {
                 Crypto Price Indexes
               </h1>
               <div className="flex gap-2">
+                <Link
+                    href="/crypto-tracker"
+                    className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Crypto Tracker
+                </Link>
                 <button
                     onClick={updateAnalysis}
                     disabled={loading || tokens.length === 0}
@@ -393,9 +401,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
               </div>
             </div>
           </div>
-
         </div>
-      </>
+      </div>
   );
 };
 

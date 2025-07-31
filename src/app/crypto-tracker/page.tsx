@@ -26,7 +26,7 @@ export interface InvestmentFormData {
     notes: string
 }
 
-const Page = () => {
+const CryptoTrackerPage = () => {
     const { data: investments = [] } = useInvestments();
     const addMutation = useAddInvestment();
     const removeMutation = useRemoveInvestment();
@@ -513,4 +513,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default CryptoTrackerPage;
