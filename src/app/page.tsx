@@ -82,12 +82,12 @@ const CryptoBuyAnalyzer: React.FC = () => {
       const uniqueSymbols = [...new Set(tokensWithData.map((inv) => inv.symbol))];
       const priceData = await fetchPrices(uniqueSymbols);
 
-      const analyzed: TokenData[] = tokensWithData.map((inv ) => {
+      const analyzed = tokensWithData.map((inv ) => {
         const currentPrice = priceData[inv.symbol]?.usd ?? 0;
         const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
         const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
         const oneMonthPriceIndex = inv.oneMonthLow && inv.oneMonthHigh
-            ? calculatePriceIndex(currentPrice, inv.oneMonthLow, inv.oneMonthHigh)
+            ? calculatePriceIndex(currentPrice, Number(inv.oneMonthLow), Number(inv.oneMonthHigh))
             : null;
         const piBuySignal = getBuySignal(priceIndex);
         const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
@@ -141,7 +141,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 
   const handleSubmit = async () => {
     const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = formData;
-    if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh) {
+    if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh || !oneMonthLow || !oneMonthHigh) {
       return alert('Fill all required fields');
     }
 
@@ -162,8 +162,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
         allTimeHigh: Number(allTimeHigh),
         oneYearLow: Number(oneYearLow),
         oneYearHigh: Number(oneYearHigh),
-        oneMonthLow: oneMonthLow ? Number(oneMonthLow) : undefined,
-        oneMonthHigh: oneMonthHigh ? Number(oneMonthHigh) : undefined,
+        oneMonthLow: Number(oneMonthLow),
+        oneMonthHigh: Number(oneMonthHigh),
         currentPrice,
         priceIndex,
         oneYearPriceIndex,

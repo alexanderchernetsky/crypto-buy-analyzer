@@ -22,6 +22,8 @@ export interface CryptoBuyToken {
     allTimeHigh?: number;
     oneYearLow?: number;
     oneYearHigh?: number;
+    oneMonthLow?: number;
+    oneMonthHigh?: number;
 }
 
 const investmentsRef = collection(db, 'crypto-buy-analyzer-tokens');
