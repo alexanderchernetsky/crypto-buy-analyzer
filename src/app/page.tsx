@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
-import { AddTokenToBuyAnalyzerForm } from '@/components/AddTokenToBuyAnalyzerForm';
-import { EditTokenForm } from '@/components/EditTokenForm';
+import { TokenForm } from '@/components/CreateEditTokenForm';
 import {
   useAddTokenToBuyAnalyzer,
   useCryptoBuyAnalyzer,
@@ -332,23 +331,25 @@ const CryptoBuyAnalyzer: React.FC = () => {
 
           {/* Add Investment Form */}
           {showAddForm && (
-              <AddTokenToBuyAnalyzerForm
+              <TokenForm
+                  mode="add"
                   formData={formData}
                   setFormData={setFormData}
                   loading={loading}
                   handleSubmit={handleSubmit}
-                  setShowAddForm={setShowAddForm}
+                  onCancel={() => setShowAddForm(false)}
               />
           )}
 
           {/* Edit Investment Form */}
           {showEditForm && editingToken && (
-              <EditTokenForm
+              <TokenForm
+                  mode="edit"
                   formData={editFormData}
                   setFormData={setEditFormData}
                   loading={loading}
                   handleSubmit={handleEditSubmit}
-                  setShowEditForm={setShowEditForm}
+                  onCancel={() => setShowEditForm(false)}
                   tokenName={editingToken.tokenName}
               />
           )}

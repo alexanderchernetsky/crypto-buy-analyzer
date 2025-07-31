@@ -11,31 +11,64 @@ interface TokenFormData {
     oneMonthHigh: string;
 }
 
-interface EditTokenFormProps {
+interface TokenFormProps {
+    mode: 'add' | 'edit';
     formData: TokenFormData;
     setFormData: (data: TokenFormData) => void;
     handleSubmit: () => void;
     loading: boolean;
-    setShowEditForm: (show: boolean) => void;
-    tokenName: string;
+    onCancel: () => void;
+    tokenName?: string; // Only used in edit mode
 }
 
-export const EditTokenForm: React.FC<EditTokenFormProps> = ({
+export const TokenForm: React.FC<TokenFormProps> = ({
+    mode,
     formData,
     setFormData,
     handleSubmit,
     loading,
-    setShowEditForm,
+    onCancel,
     tokenName,
 }) => {
-    const handleCancel = () => {
-        setShowEditForm(false);
+    const isEditMode = mode === 'edit';
+
+    // Styling configuration based on mode
+    const config = isEditMode ? {
+        borderColor: 'border-blue-500/40',
+        backgroundColor: 'bg-slate-800/90',
+        titleColor: 'text-white',
+        labelColor: 'text-slate-300',
+        inputBorder: 'border-slate-600',
+        inputBg: 'bg-slate-700',
+        inputPlaceholder: 'placeholder-slate-400',
+        focusBorder: 'focus:border-blue-500',
+        focusRing: 'focus:ring-blue-400',
+        primaryButton: 'bg-blue-600 hover:bg-blue-700',
+        secondaryButton: 'bg-slate-600 hover:bg-slate-700',
+        helperText: 'text-slate-400',
+        title: `Edit Token: ${tokenName}`,
+        buttonText: 'Update Token'
+    } : {
+        borderColor: 'border-white/40',
+        backgroundColor: 'bg-gray-900/80',
+        titleColor: 'text-white',
+        labelColor: 'text-gray-300',
+        inputBorder: 'border-gray-600',
+        inputBg: 'bg-gray-800',
+        inputPlaceholder: 'placeholder-gray-400',
+        focusBorder: 'focus:border-green-500',
+        focusRing: 'focus:ring-green-400',
+        primaryButton: 'bg-green-600 hover:bg-green-700',
+        secondaryButton: 'bg-gray-600 hover:bg-gray-700',
+        helperText: 'text-gray-400',
+        title: 'Add New Token',
+        buttonText: 'Add Token'
     };
 
     return (
-        <div className="mt-6 mb-6 rounded-2xl border border-blue-500/40 bg-slate-800/90 p-6 shadow-lg backdrop-blur-sm">
-            <h2 className="mb-5 text-xl font-bold text-white">
-                Edit Token: {tokenName}
+        <div className={`mt-6 mb-6 rounded-2xl border ${config.borderColor} ${config.backgroundColor} p-6 shadow-lg backdrop-blur-sm`}>
+            <h2 className={`mb-5 text-xl font-bold ${config.titleColor}`}>
+                {config.title}
             </h2>
 
             <div className="mb-5 grid gap-4 md:grid-cols-2">
@@ -50,15 +83,15 @@ export const EditTokenForm: React.FC<EditTokenFormProps> = ({
                     { label: '1-Month High', value: formData.oneMonthHigh ?? '', key: 'oneMonthHigh', placeholder: '0.00', type: 'number' },
                 ].map(({ label, value, key, placeholder, type }) => (
                     <div key={key} className="flex flex-col">
-                        <label className="mb-2 text-sm text-slate-300">{label}</label>
+                        <label className={`mb-2 text-sm ${config.labelColor}`}>{label}</label>
                         <input
                             type={type}
                             step={type === 'number' ? 'any' : undefined}
                             value={value}
                             onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                             placeholder={placeholder}
-                            className="rounded-lg border border-slate-600 bg-slate-700 p-3 text-sm text-white placeholder-slate-400
-                     focus:border-blue-500 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+                            className={`rounded-lg border ${config.inputBorder} ${config.inputBg} p-3 text-sm text-white ${config.inputPlaceholder}
+                     ${config.focusBorder} focus:ring-2 ${config.focusRing} focus:outline-none transition`}
                         />
                     </div>
                 ))}
@@ -68,20 +101,20 @@ export const EditTokenForm: React.FC<EditTokenFormProps> = ({
                 <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className={`rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-blue-700
+                    className={`rounded-lg ${config.primaryButton} px-5 py-2 text-sm font-medium text-white transition
                   ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    Update Token
+                    {config.buttonText}
                 </button>
                 <button
-                    onClick={handleCancel}
-                    className="rounded-lg bg-slate-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+                    onClick={onCancel}
+                    className={`rounded-lg ${config.secondaryButton} px-5 py-2 text-sm font-medium text-white transition`}
                 >
                     Cancel
                 </button>
             </div>
 
-            <div className="mt-2 text-xs text-slate-400">
+            <div className={`mt-2 text-xs ${config.helperText}`}>
                 * Use CoinGecko IDs for symbols (e.g., bitcoin, ethereum). Check coingecko.com for exact IDs.
             </div>
         </div>
