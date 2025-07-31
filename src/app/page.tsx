@@ -209,8 +209,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-slate-200 flex items-center gap-2">
+            <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
+              <h1 className="text-2xl font-bold text-slate-200 flex flex-row items-center gap-2">
                 <TrendingUp className="text-emerald-500" />
                 Crypto Price Indexes
               </h1>
