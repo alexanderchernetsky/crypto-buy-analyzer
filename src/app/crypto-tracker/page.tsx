@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Filter } from 'lucide-react';
+import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Filter, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 import {
     useInvestments,
     useAddInvestment,
@@ -294,6 +295,13 @@ const CryptoTrackerPage = () => {
                             Crypto Investment Tracker
                         </h1>
                         <div className="flex flex-wrap gap-3">
+                            <Link
+                                href="/"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-teal-600 hover:bg-teal-700 transition-colors duration-200"
+                            >
+                                <TrendingUp style={{ width: 16, height: 16 }} />
+                                Price Indexes
+                            </Link>
                             <button
                                 onClick={updatePrices}
                                 disabled={loading || investments.length === 0}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
-import { TokenForm } from '@/components/CreateEditTokenForm';
+import { TokenForm } from '@/components/CryptoBuyAnalyzer/CreateEditTokenForm';
 import {
   useAddTokenToBuyAnalyzer,
   useCryptoBuyAnalyzer,
