@@ -1,15 +1,17 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import {TrendingUp, RefreshCw, Plus, Trash2, BarChart3} from 'lucide-react';
+import {TrendingUp, RefreshCw, Plus, Trash2, BarChart3, Edit} from 'lucide-react';
 import Link from 'next/link';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
 import { AddTokenToBuyAnalyzerForm } from '@/components/AddTokenToBuyAnalyzerForm';
+import { EditTokenForm } from '@/components/EditTokenForm';
 import {
   useAddTokenToBuyAnalyzer,
   useCryptoBuyAnalyzer,
-  useRemoveTokenFromBuyAnalyzer
+  useRemoveTokenFromBuyAnalyzer,
+  useUpdateTokenInBuyAnalyzer
 } from '@/react-query/useCryptoBuyAnalyzer';
 
 interface TokenInputForm {
@@ -47,11 +49,25 @@ const CryptoBuyAnalyzer: React.FC = () => {
   const { data: tokens = [] } = useCryptoBuyAnalyzer();
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingToken, setEditingToken] = useState<TokenData | null>(null);
   const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
   const addMutation = useAddTokenToBuyAnalyzer();
+  const updateMutation = useUpdateTokenInBuyAnalyzer();
   const deleteMutation = useRemoveTokenFromBuyAnalyzer();
 
   const [formData, setFormData] = useState<TokenInputForm>({
+    tokenName: '',
+    symbol: '',
+    allTimeLow: '',
+    allTimeHigh: '',
+    oneYearLow: '',
+    oneYearHigh: '',
+    oneMonthLow: '',
+    oneMonthHigh: '',
+  });
+
+  const [editFormData, setEditFormData] = useState<TokenInputForm>({
     tokenName: '',
     symbol: '',
     allTimeLow: '',
@@ -192,6 +208,72 @@ const CryptoBuyAnalyzer: React.FC = () => {
     }
   };
 
+  const handleEdit = (token: TokenData) => {
+    setEditingToken(token);
+    setEditFormData({
+      tokenName: token.tokenName,
+      symbol: token.symbol,
+      allTimeLow: token.allTimeLow.toString(),
+      allTimeHigh: token.allTimeHigh.toString(),
+      oneYearLow: token.oneYearLow.toString(),
+      oneYearHigh: token.oneYearHigh.toString(),
+      oneMonthLow: token.oneMonthLow.toString(),
+      oneMonthHigh: token.oneMonthHigh.toString(),
+    });
+    setShowEditForm(true);
+    setShowAddForm(false); // Close add form if open
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingToken) return;
+
+    const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = editFormData;
+    if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh || !oneMonthLow || !oneMonthHigh) {
+      return alert('Fill all required fields');
+    }
+
+    setLoading(true);
+
+    try {
+      const data = await fetchPrices([symbol]);
+      const currentPrice = data[symbol]?.usd;
+
+      if (!currentPrice) throw new Error('Invalid symbol');
+
+      const updatedToken = {
+        id: editingToken.id,
+        tokenName,
+        symbol: symbol.toLowerCase(),
+        allTimeLow: Number(allTimeLow),
+        allTimeHigh: Number(allTimeHigh),
+        oneYearLow: Number(oneYearLow),
+        oneYearHigh: Number(oneYearHigh),
+        oneMonthLow: Number(oneMonthLow),
+        oneMonthHigh: Number(oneMonthHigh),
+      };
+
+      await updateMutation.mutateAsync(updatedToken);
+
+      setEditFormData({
+        tokenName: '',
+        symbol: '',
+        allTimeLow: '',
+        allTimeHigh: '',
+        oneYearLow: '',
+        oneYearHigh: '',
+        oneMonthLow: '',
+        oneMonthHigh: '',
+      });
+      setShowEditForm(false);
+      setEditingToken(null);
+    } catch (err) {
+      alert('Could not update token');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this token?')) return;
 
@@ -235,7 +317,10 @@ const CryptoBuyAnalyzer: React.FC = () => {
                   Refresh Analysis
                 </button>
                 <button
-                    onClick={() => setShowAddForm(!showAddForm)}
+                    onClick={() => {
+                      setShowAddForm(!showAddForm);
+                      setShowEditForm(false); // Close edit form if open
+                    }}
                     className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
                 >
                   <Plus className="w-4 h-4" />
@@ -256,6 +341,18 @@ const CryptoBuyAnalyzer: React.FC = () => {
               />
           )}
 
+          {/* Edit Investment Form */}
+          {showEditForm && editingToken && (
+              <EditTokenForm
+                  formData={editFormData}
+                  setFormData={setEditFormData}
+                  loading={loading}
+                  handleSubmit={handleEditSubmit}
+                  setShowEditForm={setShowEditForm}
+                  tokenName={editingToken.tokenName}
+              />
+          )}
+
           {/* Analysis Table */}
           <div className="bg-slate-800 rounded-xl border border-slate-700 mt-6 overflow-x-auto">
             <table className="w-full table-auto border-collapse">
@@ -272,7 +369,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
               <tbody>
               {analyzedTokens.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-400">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-slate-400">
                       {tokens.length === 0
                           ? 'No tokens found. Add tokens data to see buy analysis.'
                           : 'No tokens with sufficient price index data found. Please add All-time High/Low data to your tokens.'
@@ -346,14 +443,23 @@ const CryptoBuyAnalyzer: React.FC = () => {
                               </div>
                           ) : '—'}
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                              onClick={() => handleDelete(token.id)}
-                              className="text-red-500 hover:text-red-700 cursor-pointer"
-                              title="Delete token"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                                onClick={() => handleEdit(token)}
+                                className="text-blue-500 hover:text-blue-700 cursor-pointer"
+                                title="Edit token"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => handleDelete(token.id)}
+                                className="text-red-500 hover:text-red-700 cursor-pointer"
+                                title="Delete token"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                   ))

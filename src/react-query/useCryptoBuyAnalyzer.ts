@@ -3,6 +3,7 @@ import {
     collection,
     addDoc,
     deleteDoc,
+    updateDoc,
     doc,
     onSnapshot,
     DocumentData,
@@ -10,9 +11,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/database/firebase';
 
-// =======================
-// Type Definitions
-// =======================
 
 export interface CryptoBuyToken {
     id?: string; // Will be added when fetched
@@ -31,7 +29,6 @@ const investmentsRef = collection(db, 'crypto-buy-analyzer-tokens');
 // =======================
 // Fetch Hook
 // =======================
-
 export const useCryptoBuyAnalyzer = () => {
     return useQuery<CryptoBuyToken[]>({
         queryKey: ['crypto-buy-analyzer-token'],
@@ -64,6 +61,18 @@ export const useAddTokenToBuyAnalyzer = () => {
 };
 
 // =======================
+// Update Token Hook
+// =======================
+export const useUpdateTokenInBuyAnalyzer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...updateData }: CryptoBuyToken & { id: string }) =>
+            updateDoc(doc(db, 'crypto-buy-analyzer-tokens', id), updateData),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['crypto-buy-analyzer-token'] }),
+    });
+};
+
+// =======================
 // Delete Token Hook
 // =======================
 export const useRemoveTokenFromBuyAnalyzer = () => {
@@ -73,4 +82,3 @@ export const useRemoveTokenFromBuyAnalyzer = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['crypto-buy-analyzer-token'] }),
     });
 };
-
