@@ -4,11 +4,8 @@ import { TrendingUp, RefreshCw, Plus } from 'lucide-react';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
-import { getFearGreedStatus } from '@/utils/getFearGreedStatus';
-import { getAltcoinStatus } from '@/utils/getAltcoinStatus';
 import { AddTokenToBuyAnalyzerForm } from '@/components/AddTokenToBuyAnalyzerForm';
 import { useAddTokenToBuyAnalyzer, useCryptoBuyAnalyzer } from '@/react-query/useCryptoBuyAnalyzer';
-import { useCoinmarketcap } from "@/react-query/useCoinmarketcap";
 
 interface TokenInputForm {
   tokenName: string;
@@ -37,14 +34,9 @@ interface TokenData {
 
 const CryptoBuyAnalyzer: React.FC = () => {
   const { data: tokens = [] } = useCryptoBuyAnalyzer();
-  const { data: cmcData } = useCoinmarketcap();
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
-
-  // todo: replace with real data
-  const altcoinIndex = 'N/A';
-
   const addMutation = useAddTokenToBuyAnalyzer();
 
   const [formData, setFormData] = useState<TokenInputForm>({
@@ -174,9 +166,6 @@ const CryptoBuyAnalyzer: React.FC = () => {
     }
   };
 
-  const fearGreedStatus = getFearGreedStatus(cmcData?.fearGreedIndex?.value);
-  const altcoinStatus = getAltcoinStatus(altcoinIndex as unknown as number);
-
   return (
       <>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -207,47 +196,6 @@ const CryptoBuyAnalyzer: React.FC = () => {
                   <Plus className="w-4 h-4" />
                   Add Token
                 </button>
-              </div>
-            </div>
-
-            {/* Market Indices Grid */}
-            <div className="grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mt-6">
-              {/* Fear & Greed Index Card */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6 transition-all duration-200 ease-in-out">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-base font-semibold text-slate-200">Fear &amp; Greed Index</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <span className="text-4xl font-extrabold leading-none text-slate-50">{cmcData?.fearGreedIndex?.value}</span>
-                  <div
-                      className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold w-fit"
-                      style={{
-                        color: fearGreedStatus.color,
-                        backgroundColor: fearGreedStatus.bgColor,
-                      }}
-                  >
-                    {cmcData?.fearGreedIndex?.classification}
-                  </div>
-                </div>
-              </div>
-
-              {/* Altcoin Index Card */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6 transition-all duration-200 ease-in-out">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-base font-semibold text-slate-200">Altcoin Index</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <span className="text-4xl font-extrabold leading-none text-slate-50">{altcoinIndex}</span>
-                  <div
-                      className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold w-fit"
-                      style={{
-                        color: altcoinStatus.color,
-                        backgroundColor: altcoinStatus.bgColor,
-                      }}
-                  >
-                    {altcoinStatus.text}
-                  </div>
-                </div>
               </div>
             </div>
           </div>

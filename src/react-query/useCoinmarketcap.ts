@@ -5,6 +5,6 @@ export const useCoinmarketcap = () => {
     return useQuery({
         queryKey: ['coinmarketcap-data'],
         queryFn: () => fetchCoinmarketcapData(),
-        staleTime: Infinity,
+        staleTime: 10 * 60 * 1000, // 10 minutes
     });
 };
