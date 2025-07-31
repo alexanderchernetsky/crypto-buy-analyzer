@@ -2,13 +2,13 @@ import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export const CryptoPortfolioSummary = ({
-                                           totalInvested,
-                                           totalCurrentValue,
-                                           totalProfitLoss,
-                                           totalProfitLossPercentage,
-                                           realisedProfitLoss,
-                                           openPositionsCount
-                                       }: {
+   totalInvested,
+   totalCurrentValue,
+   totalProfitLoss,
+   totalProfitLossPercentage,
+   realisedProfitLoss,
+   openPositionsCount
+}: {
     totalInvested: number;
     totalCurrentValue: number;
     totalProfitLoss: number;
