@@ -15,7 +15,7 @@ export const getBuySignal = (priceIndex: number | null): BuySignal => {
         };
     }
 
-    if (priceIndex <= 0.2) {
+    if (priceIndex <= 0.1) {
         return {
             signal: 'STRONG BUY',
             color: '#10b981',
