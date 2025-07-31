@@ -1,11 +1,15 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, RefreshCw, Plus } from 'lucide-react';
+import {TrendingUp, RefreshCw, Plus, Trash2} from 'lucide-react';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
 import { AddTokenToBuyAnalyzerForm } from '@/components/AddTokenToBuyAnalyzerForm';
-import { useAddTokenToBuyAnalyzer, useCryptoBuyAnalyzer } from '@/react-query/useCryptoBuyAnalyzer';
+import {
+  useAddTokenToBuyAnalyzer,
+  useCryptoBuyAnalyzer,
+  useRemoveTokenFromBuyAnalyzer
+} from '@/react-query/useCryptoBuyAnalyzer';
 
 interface TokenInputForm {
   tokenName: string;
@@ -14,6 +18,8 @@ interface TokenInputForm {
   allTimeHigh: string;
   oneYearLow: string;
   oneYearHigh: string;
+  oneMonthLow: string;
+  oneMonthHigh: string;
 }
 
 interface TokenData {
@@ -24,11 +30,15 @@ interface TokenData {
   allTimeHigh: number;
   oneYearLow: number;
   oneYearHigh: number;
+  oneMonthLow: number;
+  oneMonthHigh: number;
   currentPrice: number;
   priceIndex: number | null;
   oneYearPriceIndex: number | null;
+  oneMonthPriceIndex: number | null;
   piBuySignal: ReturnType<typeof getBuySignal>;
   oneYearPiBuySignal: ReturnType<typeof getBuySignal>;
+  oneMonthPiBuySignal: ReturnType<typeof getBuySignal>;
   lastUpdated: string;
 }
 
@@ -38,6 +48,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
   const addMutation = useAddTokenToBuyAnalyzer();
+  const deleteMutation = useRemoveTokenFromBuyAnalyzer();
 
   const [formData, setFormData] = useState<TokenInputForm>({
     tokenName: '',
@@ -46,6 +57,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
     allTimeHigh: '',
     oneYearLow: '',
     oneYearHigh: '',
+    oneMonthLow: '',
+    oneMonthHigh: '',
   });
 
   useEffect(() => {
@@ -73,8 +86,12 @@ const CryptoBuyAnalyzer: React.FC = () => {
         const currentPrice = priceData[inv.symbol]?.usd ?? 0;
         const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
         const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
+        const oneMonthPriceIndex = inv.oneMonthLow && inv.oneMonthHigh
+            ? calculatePriceIndex(currentPrice, inv.oneMonthLow, inv.oneMonthHigh)
+            : null;
         const piBuySignal = getBuySignal(priceIndex);
         const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
+        const oneMonthPiBuySignal = getBuySignal(oneMonthPriceIndex);
 
         return {
           id: inv.id,
@@ -83,13 +100,17 @@ const CryptoBuyAnalyzer: React.FC = () => {
           currentPrice,
           priceIndex,
           oneYearPriceIndex,
+          oneMonthPriceIndex,
           piBuySignal,
           oneYearPiBuySignal,
+          oneMonthPiBuySignal,
           lastUpdated: new Date().toLocaleTimeString(),
           allTimeLow: inv.allTimeLow,
           allTimeHigh: inv.allTimeHigh,
           oneYearLow: inv.oneYearLow,
           oneYearHigh: inv.oneYearHigh,
+          oneMonthLow: inv.oneMonthLow || 0,
+          oneMonthHigh: inv.oneMonthHigh || 0,
         };
       }) as TokenData[];
 
@@ -119,7 +140,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh } = formData;
+    const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = formData;
     if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh) {
       return alert('Fill all required fields');
     }
@@ -141,6 +162,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
         allTimeHigh: Number(allTimeHigh),
         oneYearLow: Number(oneYearLow),
         oneYearHigh: Number(oneYearHigh),
+        oneMonthLow: oneMonthLow ? Number(oneMonthLow) : undefined,
+        oneMonthHigh: oneMonthHigh ? Number(oneMonthHigh) : undefined,
         currentPrice,
         priceIndex,
         oneYearPriceIndex,
@@ -156,6 +179,8 @@ const CryptoBuyAnalyzer: React.FC = () => {
         allTimeHigh: '',
         oneYearLow: '',
         oneYearHigh: '',
+        oneMonthLow: '',
+        oneMonthHigh: '',
       });
       setShowAddForm(false);
     } catch (err) {
@@ -163,6 +188,18 @@ const CryptoBuyAnalyzer: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this token?')) return;
+
+    try {
+      await deleteMutation.mutateAsync(id);
+      setAnalyzedTokens(prev => prev.filter(token => token.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete token.');
     }
   };
 
@@ -174,7 +211,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold text-slate-200 flex items-center gap-2">
                 <TrendingUp className="text-emerald-500" />
-                Crypto Buy Analyzer
+                Crypto Price Indexes
               </h1>
               <div className="flex gap-2">
                 <button
@@ -220,12 +257,14 @@ const CryptoBuyAnalyzer: React.FC = () => {
                 <th className="border-b border-slate-700 px-4 py-2 text-right text-sm font-semibold text-slate-300">Current Price</th>
                 <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">PI</th>
                 <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">1-Y PI</th>
+                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">1-M PI</th>
+                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">Actions</th>
               </tr>
               </thead>
               <tbody>
               {analyzedTokens.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-sm text-slate-400">
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-400">
                       {tokens.length === 0
                           ? 'No tokens found. Add tokens data to see buy analysis.'
                           : 'No tokens with sufficient price index data found. Please add All-time High/Low data to your tokens.'
@@ -279,6 +318,34 @@ const CryptoBuyAnalyzer: React.FC = () => {
                                 {token.oneYearPiBuySignal.text}
                               </div>
                           ) : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {token.oneMonthPiBuySignal ? (
+                              <div
+                                  className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                                  style={{
+                                    color: token.oneMonthPiBuySignal.color,
+                                    backgroundColor: `${token.oneMonthPiBuySignal.color}15`,
+                                    border: `1px solid ${token.oneMonthPiBuySignal.color}30`,
+                                  }}
+                                  title={`${token.oneMonthPriceIndex !== null ? (Number(token.oneMonthPriceIndex) * 100).toFixed(1) : '—'}%`}
+                              >
+                                {token.oneMonthPriceIndex !== null
+                                    ? `${(token.oneMonthPriceIndex * 100).toFixed(1)}%`
+                                    : '—'}
+                                {' '}
+                                {token.oneMonthPiBuySignal.text}
+                              </div>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                              onClick={() => handleDelete(token.id)}
+                              className="text-red-500 hover:text-red-700 cursor-pointer"
+                              title="Delete token"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                   ))

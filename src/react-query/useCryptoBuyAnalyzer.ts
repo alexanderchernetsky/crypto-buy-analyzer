@@ -53,7 +53,6 @@ export const useCryptoBuyAnalyzer = () => {
 // =======================
 // Add Token Hook
 // =======================
-
 export const useAddTokenToBuyAnalyzer = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -65,12 +64,11 @@ export const useAddTokenToBuyAnalyzer = () => {
 // =======================
 // Delete Token Hook
 // =======================
-
 export const useRemoveTokenFromBuyAnalyzer = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => deleteDoc(doc(db, 'crypto-buy-analyzer-token', id)),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['crypto-buy-analyzer-tokens'] }),
+        mutationFn: (id: string) => deleteDoc(doc(db, 'crypto-buy-analyzer-tokens', id)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['crypto-buy-analyzer-token'] }),
     });
 };
 

@@ -7,6 +7,8 @@ interface TokenFormData {
     allTimeHigh: string;
     oneYearLow: string;
     oneYearHigh: string;
+    oneMonthLow: string;
+    oneMonthHigh: string;
 }
 
 interface AddTokenToBuyAnalyzerFormProps {
@@ -18,12 +20,12 @@ interface AddTokenToBuyAnalyzerFormProps {
 }
 
 export const AddTokenToBuyAnalyzerForm: React.FC<AddTokenToBuyAnalyzerFormProps> = ({
-    formData,
-    setFormData,
-    handleSubmit,
-    loading,
-    setShowAddForm,
-}) => {
+                                                                                        formData,
+                                                                                        setFormData,
+                                                                                        handleSubmit,
+                                                                                        loading,
+                                                                                        setShowAddForm,
+                                                                                    }) => {
     const handleCancel = () => {
         setShowAddForm(false);
     };
@@ -42,6 +44,8 @@ export const AddTokenToBuyAnalyzerForm: React.FC<AddTokenToBuyAnalyzerFormProps>
                     { label: 'All-Time High', value: formData.allTimeHigh ?? '', key: 'allTimeHigh', placeholder: '0.00', type: 'number' },
                     { label: '1-Year Low', value: formData.oneYearLow ?? '', key: 'oneYearLow', placeholder: '0.00', type: 'number' },
                     { label: '1-Year High', value: formData.oneYearHigh ?? '', key: 'oneYearHigh', placeholder: '0.00', type: 'number' },
+                    { label: '1-Month Low', value: formData.oneMonthLow ?? '', key: 'oneMonthLow', placeholder: '0.00', type: 'number' },
+                    { label: '1-Month High', value: formData.oneMonthHigh ?? '', key: 'oneMonthHigh', placeholder: '0.00', type: 'number' },
                 ].map(({ label, value, key, placeholder, type }) => (
                     <div key={key} className="flex flex-col">
                         <label className="mb-2 text-sm text-gray-300">{label}</label>
