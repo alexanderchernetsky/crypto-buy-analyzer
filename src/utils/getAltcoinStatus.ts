@@ -3,7 +3,8 @@ type AltcoinPhase =
     | 'Accumulation'
     | 'Growth Phase'
     | 'Alt Season'
-    | 'Euphoria';
+    | 'Euphoria'
+    | 'Unknown';
 
 interface AltcoinStatus {
     text: AltcoinPhase;
@@ -40,9 +41,16 @@ export const getAltcoinStatus = (index: number): AltcoinStatus => {
             bgColor: 'rgba(245, 158, 11, 0.1)',
         };
     }
+    if (index <= 100) {
+        return {
+            text: 'Euphoria',
+            color: '#ef4444',
+            bgColor: 'rgba(239, 68, 68, 0.1)',
+        };
+    }
     return {
-        text: 'Euphoria',
-        color: '#ef4444',
-        bgColor: 'rgba(239, 68, 68, 0.1)',
+        text: 'Unknown',
+        color: '#6b7280',
+        bgColor: 'rgba(107, 114, 128, 0.1)',
     };
 };

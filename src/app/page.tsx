@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, RefreshCw, Eye, AlertTriangle, Plus } from 'lucide-react';
+import { TrendingUp, RefreshCw, Plus } from 'lucide-react';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
 import { getBuySignal } from '@/utils/getBuySignal';
@@ -43,7 +43,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
 
   // todo: replace with real data
-  const [altcoinIndex, setAltcoinIndex] = useState<number>(68);
+  const altcoinIndex = 'N/A';
 
   const addMutation = useAddTokenToBuyAnalyzer();
 
@@ -175,7 +175,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   };
 
   const fearGreedStatus = getFearGreedStatus(cmcData?.fearGreedIndex?.value);
-  const altcoinStatus = getAltcoinStatus(altcoinIndex);
+  const altcoinStatus = getAltcoinStatus(altcoinIndex as unknown as number);
 
   return (
       <>
@@ -234,7 +234,6 @@ const CryptoBuyAnalyzer: React.FC = () => {
               {/* Altcoin Index Card */}
               <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-6 transition-all duration-200 ease-in-out">
                 <div className="flex items-center gap-3 mb-4">
-                  <AlertTriangle size={20} style={{ color: altcoinStatus.color }} />
                   <span className="text-base font-semibold text-slate-200">Altcoin Index</span>
                 </div>
                 <div className="flex flex-col gap-2">
