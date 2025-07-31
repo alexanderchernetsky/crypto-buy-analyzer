@@ -57,8 +57,6 @@ const CryptoTrackerPage = () => {
     const [sortByPL, setSortByPL] = useState(false);
     const [sortPLPercentageAsc, setSortPLPercentageAsc] = useState(true);
 
-
-
     useEffect(() => {
         if (!investments || investments.length === 0) return;
         updatePrices();
@@ -121,7 +119,6 @@ const CryptoTrackerPage = () => {
                     // lastUpdated not needed
                 };
             });
-
 
             // Combine updated open investments with preserved closed investments
             enriched = [...enriched, ...preservedClosedInvestments];
@@ -247,6 +244,10 @@ const CryptoTrackerPage = () => {
 
     // DELETE
     const handleRemove = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this investment? This action cannot be undone.')) {
+            return;
+        }
+
         try {
             await removeMutation.mutateAsync(id);
         } catch (err) {
@@ -280,56 +281,58 @@ const CryptoTrackerPage = () => {
         return sorted;
     }, [filteredPortfolio, sortByPL, sortPLPercentageAsc]);
 
-    // Count closed positions for the filter button
+    // Count closed and open positions
     const closedPositionsCount = portfolio.filter(inv => inv.status === 'closed').length;
+    const openPositionsCount = portfolio.filter(inv => inv.status !== 'closed').length;
     const realisedProfitLoss = portfolio.filter(inv => inv.status === 'closed').reduce((sum, i) => sum + (i.currentValue - i.amountPaid), 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-800 via-purple-700 to-slate-800 p-5 font-sans">
-            <div className="max-w-[1500px] mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
+            <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20 shadow-[0_10px_25px_rgba(0,0,0,0.3)]">
-                    <div className="flex flex-wrap justify-between items-center gap-2 mb-5">
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-3 m-0">
-                            <DollarSign style={{ color: '#fbbf24' }} />
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                    <div className="flex flex-col lg:flex-row gap-3 items-center justify-between mb-6">
+                        <h1 className="text-2xl font-bold text-slate-200 flex items-center gap-2">
+                            <DollarSign className="text-emerald-500" />
                             Crypto Investment Tracker
                         </h1>
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                             <Link
                                 href="/"
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-teal-600 hover:bg-teal-700 transition-colors duration-200"
+                                className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
                             >
-                                <TrendingUp style={{ width: 16, height: 16 }} />
+                                <TrendingUp className="w-4 h-4" />
                                 Price Indexes
                             </Link>
                             <button
                                 onClick={updatePrices}
                                 disabled={loading || investments.length === 0}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                    ${loading || investments.length === 0 ? 'bg-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
+                                `}
                             >
                                 <RefreshCw
-                                    style={{ width: 16, height: 16 }}
-                                    className={loading ? 'animate-spin' : ''}
+                                    className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
                                 />
                                 Refresh Prices
                             </button>
                             <button
                                 onClick={() => setShowClosedPositions(!showClosedPositions)}
                                 disabled={closedPositionsCount === 0}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium ${
-                                    showClosedPositions
-                                        ? 'bg-blue-600 hover:bg-blue-700'
-                                        : 'bg-gray-500 hover:bg-gray-600'
+                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                    ${showClosedPositions
+                                    ? 'bg-blue-600 hover:bg-blue-700'
+                                    : 'bg-slate-600 hover:bg-slate-700'
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
-                                <Filter style={{ width: 16, height: 16 }} />
+                                <Filter className="w-4 h-4" />
                                 {showClosedPositions ? 'Hide' : 'Show'} Closed ({closedPositionsCount})
                             </button>
                             <button
                                 onClick={() => setShowAddForm(!showAddForm)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium bg-green-600 hover:bg-green-700"
+                                className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
                             >
-                                <Plus style={{ width: 16, height: 16 }} />
+                                <Plus className="w-4 h-4" />
                                 Add Investment
                             </button>
                         </div>
@@ -342,6 +345,7 @@ const CryptoTrackerPage = () => {
                         totalProfitLoss={totalProfitLoss}
                         totalProfitLossPercentage={totalProfitLossPercentage}
                         realisedProfitLoss={realisedProfitLoss}
+                        openPositionsCount={openPositionsCount}
                     />
                 </div>
 
@@ -359,162 +363,166 @@ const CryptoTrackerPage = () => {
                 )}
 
                 {/* Investments Table */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse bg-white/5 text-white">
-                            <thead>
+                <div className="bg-slate-800 rounded-xl border border-slate-700 mt-6 overflow-x-auto">
+                    <table className="w-full min-w-[1400px] table-auto border-collapse">
+                        <thead>
+                        <tr>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Date of Purchase
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Token
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Quantity
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Purchase Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Amount Paid
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Current Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Current Value
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Profit/Loss
+                            </th>
+                            <th
+                                onClick={() => {
+                                    if (!sortByPL) setSortByPL(true);
+                                    else setSortPLPercentageAsc(prev => !prev);
+                                }}
+                                title="Click to sort by P/L %"
+                                className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300 cursor-pointer hover:bg-slate-700"
+                            >
+                                P/L % {sortByPL ? (sortPLPercentageAsc ? '↑' : '↓') : ''}
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Sold %
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Status
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Close Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Notes
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Actions
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredPortfolio.length === 0 ? (
                             <tr>
-                                <th className="text-sm font-semibold p-4 text-center bg-white/10 cursor-default select-none">
-                                    Date of Purchase
-                                </th>
-                                <th className="text-sm font-semibold p-4 bg-white/10 cursor-default select-none">
-                                    Token
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none">
-                                    Quantity
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none">
-                                    Purchase Price
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none">
-                                    Amount Paid
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none">
-                                    Current Price
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none font-bold">
-                                    Current Value
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none font-bold">
-                                    Profit/Loss
-                                </th>
-                                <th
-                                    onClick={() => {
-                                        if (!sortByPL) setSortByPL(true);
-                                        else setSortPLPercentageAsc(prev => !prev);
-                                    }}
-                                    title="Click to sort by P/L %"
-                                    className="text-sm font-semibold p-4 text-right bg-white/10 cursor-pointer select-none"
+                                <td
+                                    colSpan={14}
+                                    className="px-4 py-10 text-center text-sm text-slate-400"
                                 >
-                                    P/L % {sortByPL ? (sortPLPercentageAsc ? '↑' : '↓') : ''}
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-center bg-white/10 cursor-default select-none">
-                                    Sold %
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-center bg-white/10 cursor-default select-none">
-                                    Status
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-right bg-white/10 cursor-default select-none">
-                                    Close Price
-                                </th>
-                                <th className="text-sm font-semibold p-4 bg-white/10 cursor-default select-none">
-                                    Notes
-                                </th>
-                                <th className="text-sm font-semibold p-4 text-center bg-white/10 cursor-default select-none">
-                                    Actions
-                                </th>
+                                    {portfolio.length === 0
+                                        ? 'No investments added yet. Click "Add Investment" to get started!'
+                                        : showClosedPositions
+                                            ? 'No closed positions found.'
+                                            : 'No open positions found. Toggle "Show Closed" to view closed positions.'}
+                                </td>
                             </tr>
-                            </thead>
-                            <tbody>
-                            {filteredPortfolio.length === 0 ? (
-                                <tr>
-                                    <td
-                                        colSpan={16}
-                                        className="text-center p-10 text-gray-400"
-                                    >
-                                        {portfolio.length === 0
-                                            ? 'No investments added yet. Click "Add Investment" to get started!'
-                                            : showClosedPositions
-                                                ? 'No closed positions found.'
-                                                : 'No open positions found. Toggle "Show Closed" to view closed positions.'}
+                        ) : (
+                            processedData.map(investment => (
+                                <tr
+                                    key={investment.id}
+                                    className={`border-b border-slate-700 last:border-0 hover:bg-slate-700 transition-colors duration-200 ${
+                                        investment.status === 'closed'
+                                            ? 'bg-slate-600/30'
+                                            : ''
+                                    }`}
+                                >
+                                    <td className="px-4 py-3 text-sm text-slate-300">
+                                        {investment.dateAdded
+                                            ? new Date(investment.dateAdded).toLocaleDateString()
+                                            : '—'}
                                     </td>
-                                </tr>
-                            ) : (
-                                processedData.map(investment => (
-                                    <tr
-                                        key={investment.id}
-                                        className={`transition-colors duration-200 ${
-                                            investment.status === 'closed'
-                                                ? 'bg-slate-400/70'
-                                                : ''
+                                    <td className="px-4 py-3">
+                                        <div>
+                                            <div className="font-semibold text-slate-100">{investment.tokenName}</div>
+                                            <div className="text-xs text-slate-400 uppercase">{investment.symbol}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">{investment.quantity.toFixed(4)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.purchasePrice.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.amountPaid.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.currentPrice.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono font-semibold">${investment.currentValue.toFixed(2)}</td>
+                                    <td
+                                        className={`px-4 py-3 text-right font-mono font-semibold ${
+                                            investment.profitLoss >= 0
+                                                ? 'text-emerald-400'
+                                                : 'text-red-400'
                                         }`}
                                     >
-                                        <td className="p-4 text-center text-xs text-white/90">
-                                            {investment.dateAdded
-                                                ? new Date(investment.dateAdded).toLocaleDateString()
-                                                : '—'}
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex flex-col">
-                                                <div className="">{investment.tokenName}</div>
-                                                <div className="text-xs text-gray-400 uppercase">{investment.symbol}</div>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-right">{investment.quantity.toFixed(4)}</td>
-                                        <td className="p-4 text-right">${investment.purchasePrice.toFixed(2)}</td>
-                                        <td className="p-4 text-right">${investment.amountPaid.toFixed(2)}</td>
-                                        <td className="p-4 text-right">${investment.currentPrice.toFixed(2)}</td>
-                                        <td className="p-4 text-right">${investment.currentValue.toFixed(2)}</td>
-                                        <td
-                                            className={`p-4 text-right font-bold ${
-                                                investment.profitLoss >= 0
-                                                    ? 'text-green-400'
-                                                    : 'text-red-400'
-                                            }`}
-                                        >
-                                            ${investment.profitLoss.toFixed(2)}
-                                        </td>
-                                        <td
-                                            className={`p-4 text-right font-bold ${
-                                                investment.profitLossPercentage >= 0
-                                                    ? 'text-green-400'
-                                                    : 'text-red-400'
-                                            }`}
-                                        >
-                                            {investment.profitLossPercentage >= 0 ? '+' : ''}
-                                            {investment.profitLossPercentage.toFixed(2)}%
-                                        </td>
-                                        <td className="p-4 text-center">
-                                            {investment.sold ? `${investment.sold}%` : '—'}
-                                        </td>
-                                        <td className="p-4 text-center capitalize">
-                                            {investment.status || 'open'}
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            {investment.closePrice
-                                                ? `$${investment.closePrice.toFixed(2)}`
-                                                : '—'}
-                                        </td>
-                                        <td
-                                            className="p-4 max-w-[150px] truncate text-xs text-gray-400"
-                                            title={investment.notes || ''}
-                                        >
-                                            {investment.notes || '—'}
-                                        </td>
-                                        <td className="p-4 text-center">
-                                            <div className="flex justify-center gap-1">
-                                                <button
-                                                    onClick={() => handleEdit(investment)}
-                                                    title="Edit"
-                                                    className="text-sky-400 p-1 rounded hover:bg-white/20 transition"
-                                                >
-                                                    <Pencil size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRemove(investment.id)}
-                                                    title="Remove"
-                                                    className="text-red-400 p-1 rounded hover:bg-white/20 transition"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                            </tbody>
-                        </table>
-                    </div>
+                                        ${investment.profitLoss.toFixed(2)}
+                                    </td>
+                                    <td
+                                        className={`px-4 py-3 text-right font-mono font-semibold ${
+                                            investment.profitLossPercentage >= 0
+                                                ? 'text-emerald-400'
+                                                : 'text-red-400'
+                                        }`}
+                                    >
+                                        {investment.profitLossPercentage >= 0 ? '+' : ''}
+                                        {investment.profitLossPercentage.toFixed(2)}%
+                                    </td>
+                                    <td className="px-4 py-3 text-center text-slate-300">
+                                        {investment.sold ? `${investment.sold}%` : '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-md capitalize ${
+                                                investment.status === 'closed'
+                                                    ? 'bg-slate-600 text-slate-200'
+                                                    : 'bg-emerald-600/20 text-emerald-400'
+                                            }`}>
+                                                {investment.status || 'open'}
+                                            </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">
+                                        {investment.closePrice
+                                            ? `$${investment.closePrice.toFixed(2)}`
+                                            : '—'}
+                                    </td>
+                                    <td
+                                        className="px-4 py-3 max-w-[150px] truncate text-xs text-slate-400"
+                                        title={investment.notes || ''}
+                                    >
+                                        {investment.notes || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex justify-center gap-2">
+                                            <button
+                                                onClick={() => handleEdit(investment)}
+                                                title="Edit"
+                                                className="text-blue-500 hover:text-blue-400 p-1 rounded hover:bg-slate-600 transition"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleRemove(investment.id)}
+                                                title="Remove"
+                                                className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-slate-600 transition"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -7,17 +7,25 @@ export const CryptoPortfolioSummary = ({
                                            totalProfitLoss,
                                            totalProfitLossPercentage,
                                            realisedProfitLoss,
+                                           openPositionsCount
                                        }: {
     totalInvested: number;
     totalCurrentValue: number;
     totalProfitLoss: number;
     totalProfitLossPercentage: number;
     realisedProfitLoss: number;
+    openPositionsCount: number;
 }) => {
     const positiveColor = 'text-green-400';
     const negativeColor = 'text-red-400';
 
     const summaryItems = [
+        {
+            label: 'Open Positions',
+            value: openPositionsCount,
+            color: 'text-white',
+            showIcon: false,
+        },
         {
             label: 'Total Invested',
             value: `$${totalInvested.toFixed(2)}`,
