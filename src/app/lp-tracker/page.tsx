@@ -1,37 +1,19 @@
 'use client'
-import React, { useMemo} from 'react';
+import React, { useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
 import LiquidityPoolsSummary from "@/components/LPTracker/LiquidityPoolsSummary";
-import LiquidityPoolCard, {FormData} from "@/components/LPTracker/LiquidityPoolCard";
+import LiquidityPoolCard from "@/components/LPTracker/LiquidityPoolCard";
+import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard";
+import { usePools } from "@/react-query/useLiquidityPools";
 
 const LiquidityPoolsTrackerPage: React.FC = () => {
-    const initialPools: FormData[] = [
-        {
-            poolName: 'LP1 - Orca SOL/USDC',
-            startDate: '2024-09-08',
-            endDate: '2024-09-11',
-            rangeFrom: -20,
-            rangeTo: 30,
-            principal: 4177,
-            earnings: 10.3,
-            status: 'open',
-        },
-        {
-            poolName: 'LP2 - Raydium SOL/USDT',
-            startDate: '2024-08-01',
-            endDate: '2024-08-10',
-            rangeFrom: -10,
-            rangeTo: 25,
-            principal: 2500,
-            earnings: 5.7,
-            status: 'closed',
-        },
-    ];
+    const { data: pools = [] } = usePools();
+    const [showCreateForm, setShowCreateForm] = useState(false);
 
     // -------- Summary Calculations --------
     const summary = useMemo(() => {
-        const openPositions = initialPools.filter(p => p.status === 'open');
-        const closedPositions = initialPools.filter(p => p.status === 'closed');
+        const openPositions = pools.filter(p => p.status === 'open');
+        const closedPositions = pools.filter(p => p.status === 'closed');
         const openPositionsCount = openPositions.length;
         const totalInvested = openPositions.reduce((sum, p) => sum + p.principal, 0);
         const profitLoss = openPositions.reduce((sum, p) => sum + p.earnings, 0);
@@ -43,7 +25,7 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
             totalProfitLoss: profitLoss,
             realisedProfitLoss,
         };
-    }, [initialPools]);
+    }, [pools]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
@@ -61,8 +43,26 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                 {/* Portfolio Summary */}
                 <LiquidityPoolsSummary {...summary} />
 
+                {/* Create Pool Button */}
+                <div className="mb-6 text-center">
+                    <button
+                        onClick={() => setShowCreateForm(prev => !prev)}
+                        className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition"
+                    >
+                        {showCreateForm ? "Cancel" : "Create Pool"}
+                    </button>
+                </div>
+
+                {/* Add new pool form */}
+                {showCreateForm && (
+                    <div className="mb-12">
+                        <AddLiquidityPoolCard />
+                    </div>
+                )}
+
+                {/* Existing pools */}
                 <div className="max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-10 mx-auto">
-                    {initialPools.map((pool, index) => (
+                    {pools.map((pool, index) => (
                         <LiquidityPoolCard key={index} initialData={pool} />
                     ))}
                 </div>
