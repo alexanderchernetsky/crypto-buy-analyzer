@@ -4,6 +4,7 @@ import {useAddPool} from "@/react-query/useLiquidityPools";
 
 
 export interface FormData {
+    id: number;
     poolName: string;
     startDate: string;
     endDate: string;
@@ -17,6 +18,7 @@ export interface FormData {
 const AddLiquidityPoolCard: React.FC = () => {
     const { mutateAsync: addPool, isPending } = useAddPool();
     const [formData, setFormData] = useState<FormData>({
+        id: 0,
         poolName: "",
         startDate: "",
         endDate: "",
