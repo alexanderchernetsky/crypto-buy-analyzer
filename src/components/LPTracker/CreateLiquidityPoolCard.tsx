@@ -35,7 +35,7 @@ const AddLiquidityPoolCard: React.FC = () => {
             [field]:
                 ["rangeFrom", "rangeTo", "principal", "earnings"].includes(field)
                     ? parseFloat(value) || 0
-                    : (value as any),
+                    : value,
         }));
     };
 
@@ -44,6 +44,7 @@ const AddLiquidityPoolCard: React.FC = () => {
         await addPool(formData);
         // reset form after submission
         setFormData({
+            id: 0,
             poolName: "",
             startDate: "",
             endDate: "",
