@@ -49,7 +49,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData })
     const handleInputChange = (field: FormField, value: string): void => {
         setFormData((prev) => ({
             ...prev,
-            [field]: isNumericField(field) ? parseFloat(value) || 0 : (value as any),
+            [field]: isNumericField(field) ? parseFloat(value) || 0 : value,
         }));
     };
 
