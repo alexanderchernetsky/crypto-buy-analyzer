@@ -8,8 +8,12 @@ import { usePools } from "@/react-query/useLiquidityPools";
 
 const LiquidityPoolsTrackerPage: React.FC = () => {
     const { data: pools = [] } = usePools();
-    console.log('data', pools);
     const [showCreateForm, setShowCreateForm] = useState(false);
+
+    // Sort pools by startDate (newest first)
+    const sortedPools = useMemo(() => {
+        return [...pools].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    }, [pools]);
 
     // -------- Summary Calculations --------
     const summary = useMemo(() => {
@@ -88,7 +92,7 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                             </button>
                         </div>
                     ) : (
-                        pools.map((pool) => (
+                        sortedPools.map((pool) => (
                             <LiquidityPoolCard  key={pool.id} initialData={pool} />
                         ))
                     )}
