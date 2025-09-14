@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { DollarSign } from "lucide-react";
-import {useUpdatePool} from "@/react-query/useLiquidityPools";
+import { DollarSign, Trash2 } from "lucide-react";
+import {useUpdatePool, useRemovePool} from "@/react-query/useLiquidityPools";
 import {FormData} from "@/components/LPTracker/CreateLiquidityPoolCard";
 import formatCurrency from "@/utils/formatCurrency";
 
@@ -26,6 +26,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
     });
 
     const { mutate: updatePool, isPending: isSaving } = useUpdatePool();
+    const { mutate: removePool, isPending: isDeleting } = useRemovePool();
 
     useEffect(() => {
         calculateMetrics();
@@ -58,14 +59,18 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
         }));
     };
 
-
-
     const formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 
-    const isDisabled = formData.status === "closed" || isSaving;
+    const isDisabled = formData.status === "closed" || isSaving || isDeleting;
 
     const handleSave = () => {
-        updatePool(formData); // Assuming initialData has id
+        updatePool(formData);
+    };
+
+    const handleDelete = () => {
+        if (window.confirm('Are you sure you want to delete this liquidity pool?')) {
+            removePool(formData.id);
+        }
     };
 
     return (
@@ -74,10 +79,12 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                 formData.status === "closed" ? "opacity-50 pointer-events-none" : ""
             }`}
         >
-            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-indigo-600" />
-                Liquidity Pool Calculator
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-indigo-600" />
+                    Liquidity Pool Calculator
+                </h2>
+            </div>
 
             <div className="space-y-4">
                 {/* Status */}
@@ -87,7 +94,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         value={formData.status}
                         onChange={(e) => handleInputChange("status", e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        disabled={isSaving}
+                        disabled={isSaving || isDeleting}
                     >
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
@@ -199,15 +206,25 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     </div>
                 </div>
 
-                {/* Save Button */}
+                {/* Action Buttons */}
                 {!isDisabled && (
-                    <div className="mt-6">
+                    <div className="flex justify-between items-center mt-6">
                         <button
                             onClick={handleSave}
-                            disabled={isSaving}
-                            className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
+                            disabled={isSaving || isDeleting}
+                            className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
                         >
                             {isSaving ? "Saving..." : "Save Changes"}
+                        </button>
+
+                        <button
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="cursor-pointer flex items-center gap-2 px-6 py-3  text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
+                            title="Delete Pool"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                     </div>
                 )}
