@@ -160,11 +160,12 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="1"
                                         value={formData.rangeFrom}
                                         onChange={(e) => handleChange("rangeFrom", e.target.value)}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                                         placeholder="From price"
+                                        required
                                     />
                                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
                                         Min
@@ -173,11 +174,12 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="1"
                                         value={formData.rangeTo}
                                         onChange={(e) => handleChange("rangeTo", e.target.value)}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                                         placeholder="To price"
+                                        required
                                     />
                                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
                                         Max
@@ -195,7 +197,8 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="1"
+                                        min="1"
                                         value={formData.principal}
                                         onChange={(e) => handleChange("principal", e.target.value)}
                                         className="w-full px-4 py-3 pl-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
@@ -214,7 +217,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                 <div className="relative">
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="1"
                                         value={formData.earnings}
                                         onChange={(e) => handleChange("earnings", e.target.value)}
                                         className="w-full px-4 py-3 pl-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
