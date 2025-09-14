@@ -11,6 +11,7 @@ export interface FormData {
     principal: number;
     earnings: number;
     status: "open" | "closed";
+    comments?: string;
 }
 
 interface AddLiquidityPoolModalProps {

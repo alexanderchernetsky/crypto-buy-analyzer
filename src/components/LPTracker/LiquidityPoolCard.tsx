@@ -184,6 +184,19 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     />
                 </div>
 
+                {/* Comments */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+                    <textarea
+                        value={formData.comments || ""}
+                        onChange={(e) => handleInputChange("comments", e.target.value)}
+                        disabled={isDisabled}
+                        rows={2}
+                        placeholder=""
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
+                    />
+                </div>
+
                 {/* Calculated Results */}
                 <div className="grid grid-cols-3 gap-4 mt-6">
                     <div>
