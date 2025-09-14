@@ -4,13 +4,12 @@ import {
     addDoc,
     deleteDoc,
     doc,
-    onSnapshot,
     updateDoc,
     DocumentData,
-    Unsubscribe,
     CollectionReference,
 } from 'firebase/firestore';
 import { db } from '@/database/firebase';
+import { getDocs } from 'firebase/firestore';
 
 // Define the shape of your Liquidity Pool data
 export type Pool = {
@@ -31,24 +30,17 @@ export type NewPool = Omit<Pool, 'id'>;
 // Firestore collection reference
 const poolsRef: CollectionReference<DocumentData> = collection(db, 'liquidity-pools');
 
-// Hook to fetch pools in real-time
 export const usePools = () => {
     return useQuery<Pool[]>({
         queryKey: ['liquidity-pools'],
-        queryFn: () =>
-            new Promise<Pool[]>((resolve) => {
-                const unsubscribe: Unsubscribe = onSnapshot(poolsRef, (snapshot) => {
-                    const data: Pool[] = snapshot.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    })) as Pool[];
-                    resolve(data);
-                });
-
-                // Cleanup
-                return () => unsubscribe();
-            }),
-        staleTime: Infinity,
+        queryFn: async () => {
+            const snapshot = await getDocs(poolsRef);
+            const data: Pool[] = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            })) as Pool[];
+            return data;
+        },
     });
 };
 

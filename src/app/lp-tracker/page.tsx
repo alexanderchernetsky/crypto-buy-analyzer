@@ -1,6 +1,6 @@
 'use client'
 import React, { useMemo, useState } from 'react';
-import { Calculator } from 'lucide-react';
+import { Calculator, Plus, X } from 'lucide-react';
 import LiquidityPoolsSummary from "@/components/LPTracker/LiquidityPoolsSummary";
 import LiquidityPoolCard from "@/components/LPTracker/LiquidityPoolCard";
 import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard";
@@ -8,6 +8,7 @@ import { usePools } from "@/react-query/useLiquidityPools";
 
 const LiquidityPoolsTrackerPage: React.FC = () => {
     const { data: pools = [] } = usePools();
+    console.log('data', pools);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     // -------- Summary Calculations --------
@@ -29,46 +30,72 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
-            <div className="max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center items-center gap-2 mb-4">
-                        <Calculator className="w-8 h-8 text-indigo-600" />
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            Liquidity Pool Calculator
-                        </h1>
+            <div className="max-w-7xl mx-auto">
+                {/* Enhanced Header with integrated Create Pool Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
+                    <div className="flex items-center gap-4 mb-6 sm:mb-0">
+                        <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                            <Calculator className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                Liquidity Pool Calculator
+                            </h1>
+                            <p className="text-gray-600 text-sm mt-2">Track and manage your DeFi positions with ease</p>
+                        </div>
                     </div>
-                </div>
-
-                {/* Portfolio Summary */}
-                <LiquidityPoolsSummary {...summary} />
-
-                {/* Create Pool Button */}
-                <div className="mb-6 text-center">
                     <button
                         onClick={() => setShowCreateForm(prev => !prev)}
-                        className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition"
+                        className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 flex items-center gap-3 relative overflow-hidden"
                     >
-                        {showCreateForm ? "Cancel" : "Create Pool"}
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        {showCreateForm ? (
+                            <>
+                                <X className="w-5 h-5 relative z-10" />
+                                <span className="relative z-10">Cancel</span>
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="w-5 h-5 relative z-10" />
+                                <span className="relative z-10">Create Pool</span>
+                            </>
+                        )}
                     </button>
                 </div>
 
-                {/* Add new pool form */}
-                {showCreateForm && (
-                    <div className="mb-12">
-                        <AddLiquidityPoolCard />
-                    </div>
-                )}
+                {/* Enhanced Create Pool Form */}
+                <AddLiquidityPoolCard onClose={() => setShowCreateForm(false)} isOpen={showCreateForm} />
 
-                {/* Existing pools */}
-                <div className="max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-10 mx-auto">
-                    {pools.map((pool, index) => (
-                        <LiquidityPoolCard key={index} initialData={pool} />
-                    ))}
+                {/* Enhanced Portfolio Summary */}
+                <div className="mb-12">
+                    <LiquidityPoolsSummary {...summary} />
+                </div>
+
+                {/* Enhanced Pool Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {pools.length === 0 ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                            <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
+                                <Calculator className="w-12 h-12 text-gray-400" />
+                            </div>
+                            <h3 className="text-xl font-semibold text-gray-600 mb-2">No pools yet</h3>
+                            <p className="text-gray-500 mb-6 max-w-md">Start by creating your first liquidity pool to begin tracking your DeFi positions.</p>
+                            <button
+                                onClick={() => setShowCreateForm(true)}
+                                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                            >
+                                Create Your First Pool
+                            </button>
+                        </div>
+                    ) : (
+                        pools.map((pool) => (
+                            <LiquidityPoolCard  key={pool.id} initialData={pool} />
+                        ))
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-export default LiquidityPoolsTrackerPage;
+export default LiquidityPoolsTrackerPage

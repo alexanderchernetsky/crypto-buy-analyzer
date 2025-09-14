@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DollarSign } from "lucide-react";
 import {useUpdatePool} from "@/react-query/useLiquidityPools";
 import {FormData} from "@/components/LPTracker/CreateLiquidityPoolCard";
+import formatCurrency from "@/utils/formatCurrency";
 
 interface Calculations {
     days: number;
@@ -12,8 +13,12 @@ interface Calculations {
 type FormField = keyof FormData;
 type NumericField = "rangeFrom" | "rangeTo" | "principal" | "earnings";
 
-const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData }) => {
-    const [formData, setFormData] = useState<FormData>(initialData);
+interface InitialData extends FormData {
+    id: string;
+}
+
+const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData }) => {
+    const [formData, setFormData] = useState<InitialData>(initialData);
     const [calculations, setCalculations] = useState<Calculations>({
         days: 0,
         earningPerDay: 0,
@@ -53,20 +58,14 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData })
         }));
     };
 
-    const formatCurrency = (value: number): string => {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            minimumFractionDigits: 2,
-        }).format(value);
-    };
+
 
     const formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 
     const isDisabled = formData.status === "closed" || isSaving;
 
     const handleSave = () => {
-        updatePool(formData);
+        updatePool(formData); // Assuming initialData has id
     };
 
     return (
