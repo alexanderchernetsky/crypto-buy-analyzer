@@ -2,15 +2,17 @@ import {TrendingDown, TrendingUp} from "lucide-react";
 import React from "react";
 
 export const LiquidityPoolsSummary = ({
-                                           totalInvested,
-                                           totalProfitLoss,
-                                           realisedProfitLoss,
-                                           openPositionsCount,
-                                       }: {
+                                          totalInvested,
+                                          totalProfitLoss,
+                                          realisedProfitLoss,
+                                          openPositionsCount,
+                                          totalEarningPerDay,
+                                      }: {
     totalInvested: number;
     totalProfitLoss: number;
     realisedProfitLoss: number;
     openPositionsCount: number;
+    totalEarningPerDay: number;
 }) => {
     const positiveColor = 'text-green-600';
     const negativeColor = 'text-red-600';
@@ -40,10 +42,16 @@ export const LiquidityPoolsSummary = ({
             color: realisedProfitLoss >= 0 ? positiveColor : negativeColor,
             showIcon: true,
         },
+        {
+            label: 'Daily Earning',
+            value: `$${totalEarningPerDay.toFixed(2)}`,
+            color: totalEarningPerDay >= 0 ? positiveColor : negativeColor,
+            showIcon: true,
+        },
     ];
 
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {summaryItems.map(({ label, value, color, showIcon }, idx) => (
                 <div
                     key={idx}

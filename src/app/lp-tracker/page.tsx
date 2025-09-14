@@ -24,11 +24,21 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
         const profitLoss = openPositions.reduce((sum, p) => sum + p.earnings, 0);
         const realisedProfitLoss = closedPositions.reduce((sum, p) => sum + p.earnings, 0);
 
+        // Calculate total earning per day for open positions
+        const totalEarningPerDay = openPositions.reduce((sum, pool) => {
+            const startDate = new Date(pool.startDate);
+            const currentDate = new Date();
+            const daysDiff = Math.max(1, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+            const dailyEarning = pool.earnings / daysDiff;
+            return sum + dailyEarning;
+        }, 0);
+
         return {
             openPositionsCount,
             totalInvested,
             totalProfitLoss: profitLoss,
             realisedProfitLoss,
+            totalEarningPerDay,
         };
     }, [pools]);
 
