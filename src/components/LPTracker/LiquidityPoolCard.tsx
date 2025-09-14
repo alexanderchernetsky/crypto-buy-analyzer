@@ -61,7 +61,14 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
 
     const formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 
-    const isDisabled = formData.status === "closed" || isSaving || isDeleting;
+    // Check if the pool was originally closed (to disable editing of other fields)
+    const wasOriginallyClosed = initialData.status === "closed";
+
+    // Disable form fields if originally closed, but allow status changes and saving
+    const isFormDisabled = wasOriginallyClosed || isSaving || isDeleting;
+
+    // Only disable buttons during API operations
+    const areButtonsDisabled = isSaving || isDeleting;
 
     const handleSave = () => {
         updatePool(formData);
@@ -76,7 +83,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
     return (
         <div
             className={`bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8 transition-opacity ${
-                formData.status === "closed" ? "opacity-50 pointer-events-none" : ""
+                formData.status === "closed" ? "opacity-75" : ""
             }`}
         >
             <div className="flex justify-between items-center mb-6">
@@ -84,6 +91,11 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     <DollarSign className="w-5 h-5 text-indigo-600" />
                     Liquidity Pool Calculator
                 </h2>
+                {formData.status === "closed" && (
+                    <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full">
+                        Closed
+                    </span>
+                )}
             </div>
 
             <div className="space-y-4">
@@ -93,8 +105,8 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     <select
                         value={formData.status}
                         onChange={(e) => handleInputChange("status", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        disabled={isSaving || isDeleting}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                        disabled={areButtonsDisabled}
                     >
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
@@ -108,7 +120,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         type="text"
                         value={formData.poolName}
                         onChange={(e) => handleInputChange("poolName", e.target.value)}
-                        disabled={isDisabled}
+                        disabled={isFormDisabled}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                     />
                 </div>
@@ -121,7 +133,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                             type="date"
                             value={formData.startDate}
                             onChange={(e) => handleInputChange("startDate", e.target.value)}
-                            disabled={isDisabled}
+                            disabled={isFormDisabled}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                         />
                     </div>
@@ -131,7 +143,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                             type="date"
                             value={formData.endDate}
                             onChange={(e) => handleInputChange("endDate", e.target.value)}
-                            disabled={isDisabled}
+                            disabled={isFormDisabled}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                         />
                     </div>
@@ -145,7 +157,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                             type="number"
                             value={formData.rangeFrom}
                             onChange={(e) => handleInputChange("rangeFrom", e.target.value)}
-                            disabled={isDisabled}
+                            disabled={isFormDisabled}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                             placeholder="From"
                         />
@@ -153,7 +165,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                             type="number"
                             value={formData.rangeTo}
                             onChange={(e) => handleInputChange("rangeTo", e.target.value)}
-                            disabled={isDisabled}
+                            disabled={isFormDisabled}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                             placeholder="To"
                         />
@@ -167,7 +179,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         type="number"
                         value={formData.principal}
                         onChange={(e) => handleInputChange("principal", e.target.value)}
-                        disabled={isDisabled}
+                        disabled={isFormDisabled}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                     />
                 </div>
@@ -179,7 +191,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         type="number"
                         value={formData.earnings}
                         onChange={(e) => handleInputChange("earnings", e.target.value)}
-                        disabled={isDisabled}
+                        disabled={isFormDisabled}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                     />
                 </div>
@@ -190,7 +202,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     <textarea
                         value={formData.comments || ""}
                         onChange={(e) => handleInputChange("comments", e.target.value)}
-                        disabled={isDisabled}
+                        disabled={isFormDisabled}
                         rows={2}
                         placeholder=""
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
@@ -220,27 +232,25 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                 </div>
 
                 {/* Action Buttons */}
-                {!isDisabled && (
-                    <div className="flex justify-between items-center mt-6">
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving || isDeleting}
-                            className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
-                        >
-                            {isSaving ? "Saving..." : "Save Changes"}
-                        </button>
+                <div className="flex justify-between items-center mt-6">
+                    <button
+                        onClick={handleSave}
+                        disabled={areButtonsDisabled}
+                        className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
+                    >
+                        {isSaving ? "Saving..." : "Save Changes"}
+                    </button>
 
-                        <button
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="cursor-pointer flex items-center gap-2 px-6 py-3  text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
-                            title="Delete Pool"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            {isDeleting ? "Deleting..." : "Delete"}
-                        </button>
-                    </div>
-                )}
+                    <button
+                        onClick={handleDelete}
+                        disabled={areButtonsDisabled}
+                        className="cursor-pointer flex items-center gap-2 px-6 py-3  text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
+                        title="Delete Pool"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {isDeleting ? "Deleting..." : "Delete"}
+                    </button>
+                </div>
             </div>
         </div>
     );
