@@ -21,7 +21,7 @@ interface Calculations {
 type FormField = keyof FormData;
 type NumericField = "rangeFrom" | "rangeTo" | "principal";
 
-const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData }) => {
+const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({ initialData, price }) => {
     const [formData, setFormData] = useState<FormData>(initialData);
     const [calculations, setCalculations] = useState<Calculations>({
         days: 0,
@@ -176,6 +176,43 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData })
                     />
                 </div>
 
+                {/* Token Symbol */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Token Symbol</label>
+                    <input
+                        type="text"
+                        value={formData.tokenSymbol || ""}
+                        onChange={(e) => handleInputChange("tokenSymbol", e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                        placeholder="e.g., ethereum, solana, etc."
+                        disabled={isFormDisabled}
+                        required
+                    />
+                </div>
+
+                {/* Price Status */}
+                <div className="flex items-center gap-3 mb-4">
+                    <div
+                        className={`w-4 h-4 rounded-full transition-colors duration-300 ${
+                            price >= formData.rangeFrom && price <= formData.rangeTo
+                                ? "bg-green-500 shadow-md"
+                                : "bg-red-500 shadow-md"
+                        }`}
+                    ></div>
+                    <span
+                        className={`px-3 py-1 text-sm font-medium rounded-full transition-colors duration-300 ${
+                            price >= formData.rangeFrom && price <= formData.rangeTo
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                        }`}
+                    >
+        {price >= formData.rangeFrom && price <= formData.rangeTo
+            ? `Within range (${price})`
+            : `Outside range (${price})`}
+    </span>
+                </div>
+
+
                 {/* Price Range */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
@@ -198,6 +235,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData })
                         />
                     </div>
                 </div>
+
 
                 {/* Principal */}
                 <div>

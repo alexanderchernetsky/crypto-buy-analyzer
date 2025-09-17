@@ -15,6 +15,7 @@ export type NewPoolFormData = Omit<FormData, "id">;
 export interface FormData {
     id: string;
     poolName: string;
+    tokenSymbol: string;
     rangeFrom: number;
     rangeTo: number;
     principal: number;
@@ -148,6 +149,20 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
                                 required
                             />
                         </div>
+
+                        {/* Token Symbol */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Token Symbol</label>
+                            <input
+                                type="text"
+                                value={formData.tokenSymbol || ""}
+                                onChange={(e) => handleChange("tokenSymbol", e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                placeholder="e.g., ethereum, solana, etc."
+                                required
+                            />
+                        </div>
+
 
                         {/* Price Range */}
                         <div>

@@ -21,6 +21,7 @@ export type Pool = {
     principal: number;
     status: 'open' | 'closed';
     earningRows: EarningRow[];
+    tokenSymbol: string;
 };
 
 // Type for new Pool input (without id)
