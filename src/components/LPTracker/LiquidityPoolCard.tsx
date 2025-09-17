@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { DollarSign, Trash2 } from "lucide-react";
+import { DollarSign, Trash2, Plus, X } from "lucide-react";
 import {useUpdatePool, useRemovePool} from "@/react-query/useLiquidityPools";
 import {FormData} from "@/components/LPTracker/CreateLiquidityPoolCard";
 import formatCurrency from "@/utils/formatCurrency";
+
+interface EarningRow {
+    id: string;
+    startDate: string;
+    endDate: string;
+    earnings: number;
+    gathered: 'yes' | 'no';
+}
 
 interface Calculations {
     days: number;
@@ -11,14 +19,52 @@ interface Calculations {
 }
 
 type FormField = keyof FormData;
-type NumericField = "rangeFrom" | "rangeTo" | "principal" | "earnings";
+type NumericField = "rangeFrom" | "rangeTo" | "principal";
 
-interface InitialData extends FormData {
+interface ModifiedFormData extends Omit<FormData, 'startDate' | 'endDate' | 'earnings'> {
+    earningRows: EarningRow[];
+}
+
+interface InitialData extends Partial<ModifiedFormData> {
     id: string;
+    // Support for legacy data structure
+    startDate?: string;
+    endDate?: string;
+    earnings?: number;
 }
 
 const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData }) => {
-    const [formData, setFormData] = useState<InitialData>(initialData);
+    // Migrate old data structure to new structure if needed
+    const migrateInitialData = (data: any): InitialData => {
+        // If earningRows already exists, use as is
+        if (data.earningRows && Array.isArray(data.earningRows)) {
+            return data as InitialData;
+        }
+
+        // Migrate from old structure to new structure
+        const earningRows: EarningRow[] = [];
+
+        // If we have old format data (startDate, endDate, earnings), create a row from it
+        if (data.startDate || data.endDate || (data.earnings && data.earnings > 0)) {
+            earningRows.push({
+                id: `migrated_${Date.now()}`,
+                startDate: data.startDate || '',
+                endDate: data.endDate || '',
+                earnings: data.earnings || 0,
+                gathered: 'no'
+            });
+        }
+
+        // Remove old fields and add new structure
+        const { startDate, endDate, earnings, ...restData } = data;
+
+        return {
+            ...restData,
+            earningRows
+        };
+    };
+
+    const [formData, setFormData] = useState<InitialData>(() => migrateInitialData(initialData));
     const [calculations, setCalculations] = useState<Calculations>({
         days: 0,
         earningPerDay: 0,
@@ -33,29 +79,81 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
     }, [formData]);
 
     const calculateMetrics = (): void => {
-        const start = new Date(formData.startDate);
-        const end = new Date(formData.endDate);
-        const timeDiff = end.getTime() - start.getTime();
-        const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        const earningPerDay = days > 0 ? formData.earnings / days : 0;
+        if (formData.earningRows.length === 0) {
+            setCalculations({ days: 0, earningPerDay: 0, apr: 0 });
+            return;
+        }
+
+        // Calculate total days and earnings across all rows
+        let totalDays = 0;
+        let totalEarnings = 0;
+
+        formData.earningRows.forEach(row => {
+            if (row.startDate && row.endDate) {
+                const start = new Date(row.startDate);
+                const end = new Date(row.endDate);
+                const timeDiff = end.getTime() - start.getTime();
+                const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                totalDays += Math.max(0, days);
+            }
+            totalEarnings += row.earnings;
+        });
+
+        const earningPerDay = totalDays > 0 ? totalEarnings / totalDays : 0;
         const dailyReturn = formData.principal > 0 ? earningPerDay / formData.principal : 0;
         const apr = dailyReturn * 365 * 100;
 
         setCalculations({
-            days: Math.max(0, days),
+            days: totalDays,
             earningPerDay: earningPerDay,
             apr: apr,
         });
     };
 
     const isNumericField = (field: FormField): field is NumericField => {
-        return ["rangeFrom", "rangeTo", "principal", "earnings"].includes(field as NumericField);
+        return ["rangeFrom", "rangeTo", "principal"].includes(field as NumericField);
     };
 
     const handleInputChange = (field: FormField, value: string): void => {
         setFormData((prev) => ({
             ...prev,
             [field]: isNumericField(field) ? parseFloat(value) || 0 : value,
+        }));
+    };
+
+    const addEarningRow = (): void => {
+        const newRow: EarningRow = {
+            id: `row_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            startDate: '',
+            endDate: '',
+            earnings: 0,
+            gathered: 'no'
+        };
+
+        setFormData(prev => ({
+            ...prev,
+            earningRows: [...prev.earningRows, newRow]
+        }));
+    };
+
+    const removeEarningRow = (rowId: string): void => {
+        setFormData(prev => ({
+            ...prev,
+            earningRows: prev.earningRows.filter(row => row.id !== rowId)
+        }));
+    };
+
+    const updateEarningRow = (rowId: string, field: keyof EarningRow, value: string | number): void => {
+        setFormData(prev => ({
+            ...prev,
+            earningRows: prev.earningRows.map(row =>
+                row.id === rowId
+                    ? {
+                        ...row,
+                        [field]: field === 'earnings' ? (parseFloat(value.toString()) || 0) : value
+                    }
+                    : row
+            )
         }));
     };
 
@@ -125,30 +223,6 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     />
                 </div>
 
-                {/* Date Range */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                        <input
-                            type="date"
-                            value={formData.startDate}
-                            onChange={(e) => handleInputChange("startDate", e.target.value)}
-                            disabled={isFormDisabled}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                        <input
-                            type="date"
-                            value={formData.endDate}
-                            onChange={(e) => handleInputChange("endDate", e.target.value)}
-                            disabled={isFormDisabled}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                        />
-                    </div>
-                </div>
-
                 {/* Range */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
@@ -184,16 +258,94 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     />
                 </div>
 
-                {/* Earnings */}
+                {/* Earning Rows */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Earnings</label>
-                    <input
-                        type="number"
-                        value={formData.earnings}
-                        onChange={(e) => handleInputChange("earnings", e.target.value)}
-                        disabled={isFormDisabled}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                    />
+                    <div className="flex justify-between items-center mb-3">
+                        <label className="block text-sm font-medium text-gray-700">Earning Periods</label>
+                        <button
+                            type="button"
+                            onClick={addEarningRow}
+                            disabled={isFormDisabled}
+                            className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Row
+                        </button>
+                    </div>
+
+                    {formData.earningRows.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <p>No earning periods added yet.</p>
+                            <button
+                                type="button"
+                                onClick={addEarningRow}
+                                disabled={isFormDisabled}
+                                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50"
+                            >
+                                Add First Period
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {formData.earningRows.map((row, index) => (
+                                <div key={row.id} className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="col-span-3">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={row.startDate}
+                                            onChange={(e) => updateEarningRow(row.id, 'startDate', e.target.value)}
+                                            disabled={isFormDisabled}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                        />
+                                    </div>
+                                    <div className="col-span-3">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={row.endDate}
+                                            onChange={(e) => updateEarningRow(row.id, 'endDate', e.target.value)}
+                                            disabled={isFormDisabled}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                        />
+                                    </div>
+                                    <div className="col-span-3">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Earnings</label>
+                                        <input
+                                            type="number"
+                                            value={row.earnings}
+                                            onChange={(e) => updateEarningRow(row.id, 'earnings', e.target.value)}
+                                            disabled={isFormDisabled}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Gathered</label>
+                                        <select
+                                            value={row.gathered}
+                                            onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}
+                                            disabled={isFormDisabled}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                        >
+                                            <option value="no">No</option>
+                                            <option value="yes">Yes</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-span-1 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEarningRow(row.id)}
+                                            disabled={isFormDisabled}
+                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-all disabled:opacity-50"
+                                            title="Remove this row"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Comments */}
@@ -212,7 +364,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                 {/* Calculated Results */}
                 <div className="grid grid-cols-3 gap-4 mt-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Days</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Total Days</label>
                         <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
                             {calculations.days}
                         </div>
