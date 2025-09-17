@@ -10,18 +10,17 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/database/firebase';
 import { getDocs } from 'firebase/firestore';
+import {EarningRow} from "@/components/LPTracker/CreateLiquidityPoolCard";
 
 // Define the shape of your Liquidity Pool data
 export type Pool = {
     id: string;
     poolName: string;
-    startDate: string;
-    endDate: string;
     rangeFrom: number;
     rangeTo: number;
     principal: number;
-    earnings: number;
     status: 'open' | 'closed';
+    earningRows: EarningRow[];
 };
 
 // Type for new Pool input (without id)

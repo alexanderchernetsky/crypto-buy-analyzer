@@ -1,16 +1,25 @@
 import React, { useState } from "react";
 import { DollarSign, X } from "lucide-react";
-import {useAddPool} from "@/react-query/useLiquidityPools";
+import { useAddPool } from "@/react-query/useLiquidityPools";
 
-export interface FormData {
-    poolName: string;
+export interface EarningRow {
+    id: string;
     startDate: string;
     endDate: string;
+    earnings: number;
+    gathered: "yes" | "no";
+}
+
+export type NewPoolFormData = Omit<FormData, "id">;
+
+export interface FormData {
+    id: string;
+    poolName: string;
     rangeFrom: number;
     rangeTo: number;
     principal: number;
-    earnings: number;
     status: "open" | "closed";
+    earningRows: EarningRow[];
     comments?: string;
 }
 
@@ -19,25 +28,34 @@ interface AddLiquidityPoolModalProps {
     onClose: () => void;
 }
 
-const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, onClose }) => {
+const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
+ isOpen,
+ onClose,
+}) => {
     const { mutateAsync: addPool, isPending } = useAddPool();
 
-    const [formData, setFormData] = useState<FormData>({
+    const [formData, setFormData] = useState<NewPoolFormData>({
         poolName: "",
-        startDate: "",
-        endDate: "",
         rangeFrom: 0,
         rangeTo: 0,
         principal: 0,
-        earnings: 0,
         status: "open",
+        earningRows: [
+            {
+                id: `row_${Date.now()}`,
+                startDate: "",
+                endDate: "",
+                earnings: 0,
+                gathered: "no",
+            },
+        ],
     });
 
     const handleChange = (field: keyof FormData, value: string) => {
         setFormData((prev) => ({
             ...prev,
             [field]:
-                ["rangeFrom", "rangeTo", "principal", "earnings"].includes(field)
+                ["rangeFrom", "rangeTo", "principal"].includes(field)
                     ? parseFloat(value) || 0
                     : value,
         }));
@@ -49,13 +67,19 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
         // reset form after submission
         setFormData({
             poolName: "",
-            startDate: "",
-            endDate: "",
             rangeFrom: 0,
             rangeTo: 0,
             principal: 0,
-            earnings: 0,
             status: "open",
+            earningRows: [
+                {
+                    id: `row_${Date.now()}`,
+                    startDate: "",
+                    endDate: "",
+                    earnings: 0,
+                    gathered: "no",
+                },
+            ],
         });
         onClose();
     };
@@ -125,33 +149,6 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                             />
                         </div>
 
-                        {/* Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Start Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.startDate}
-                                    onChange={(e) => handleChange("startDate", e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    End Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.endDate}
-                                    onChange={(e) => handleChange("endDate", e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                />
-                            </div>
-                        </div>
-
                         {/* Price Range */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -169,8 +166,8 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                         required
                                     />
                                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                        Min
-                                    </span>
+                    Min
+                  </span>
                                 </div>
                                 <div className="relative">
                                     <input
@@ -183,51 +180,31 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                                         required
                                     />
                                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                        Max
-                                    </span>
+                    Max
+                  </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Financial Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Principal Amount
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        step="1"
-                                        min="1"
-                                        value={formData.principal}
-                                        onChange={(e) => handleChange("principal", e.target.value)}
-                                        className="w-full px-4 py-3 pl-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                        placeholder="4177"
-                                        required
-                                    />
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                        $
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Total Earnings
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        step="1"
-                                        value={formData.earnings}
-                                        onChange={(e) => handleChange("earnings", e.target.value)}
-                                        className="w-full px-4 py-3 pl-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                                        placeholder="10.3"
-                                    />
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                        $
-                                    </span>
-                                </div>
+                        {/* Principal */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Principal Amount
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    step="1"
+                                    min="1"
+                                    value={formData.principal}
+                                    onChange={(e) => handleChange("principal", e.target.value)}
+                                    className="w-full px-4 py-3 pl-8 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    placeholder="4177"
+                                    required
+                                />
+                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  $
+                </span>
                             </div>
                         </div>
                     </div>
@@ -248,9 +225,9 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
                         >
                             {isPending ? (
                                 <span className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                    Creating...
-                                </span>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Creating...
+                </span>
                             ) : (
                                 "Create Pool"
                             )}

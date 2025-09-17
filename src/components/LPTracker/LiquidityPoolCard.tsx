@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { DollarSign, Trash2, Plus, X } from "lucide-react";
-import {useUpdatePool, useRemovePool} from "@/react-query/useLiquidityPools";
-import {FormData} from "@/components/LPTracker/CreateLiquidityPoolCard";
+import { useUpdatePool, useRemovePool } from "@/react-query/useLiquidityPools";
+import { FormData } from "@/components/LPTracker/CreateLiquidityPoolCard";
 import formatCurrency from "@/utils/formatCurrency";
 
 interface EarningRow {
@@ -9,7 +9,7 @@ interface EarningRow {
     startDate: string;
     endDate: string;
     earnings: number;
-    gathered: 'yes' | 'no';
+    gathered: "yes" | "no";
 }
 
 interface Calculations {
@@ -21,50 +21,8 @@ interface Calculations {
 type FormField = keyof FormData;
 type NumericField = "rangeFrom" | "rangeTo" | "principal";
 
-interface ModifiedFormData extends Omit<FormData, 'startDate' | 'endDate' | 'earnings'> {
-    earningRows: EarningRow[];
-}
-
-interface InitialData extends Partial<ModifiedFormData> {
-    id: string;
-    // Support for legacy data structure
-    startDate?: string;
-    endDate?: string;
-    earnings?: number;
-}
-
-const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData }) => {
-    // Migrate old data structure to new structure if needed
-    const migrateInitialData = (data: any): InitialData => {
-        // If earningRows already exists, use as is
-        if (data.earningRows && Array.isArray(data.earningRows)) {
-            return data as InitialData;
-        }
-
-        // Migrate from old structure to new structure
-        const earningRows: EarningRow[] = [];
-
-        // If we have old format data (startDate, endDate, earnings), create a row from it
-        if (data.startDate || data.endDate || (data.earnings && data.earnings > 0)) {
-            earningRows.push({
-                id: `migrated_${Date.now()}`,
-                startDate: data.startDate || '',
-                endDate: data.endDate || '',
-                earnings: data.earnings || 0,
-                gathered: 'no'
-            });
-        }
-
-        // Remove old fields and add new structure
-        const { startDate, endDate, earnings, ...restData } = data;
-
-        return {
-            ...restData,
-            earningRows
-        };
-    };
-
-    const [formData, setFormData] = useState<InitialData>(() => migrateInitialData(initialData));
+const LiquidityPoolCard: React.FC<{ initialData: FormData }> = ({ initialData }) => {
+    const [formData, setFormData] = useState<FormData>(initialData);
     const [calculations, setCalculations] = useState<Calculations>({
         days: 0,
         earningPerDay: 0,
@@ -84,11 +42,10 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
             return;
         }
 
-        // Calculate total days and earnings across all rows
         let totalDays = 0;
         let totalEarnings = 0;
 
-        formData.earningRows.forEach(row => {
+        formData.earningRows.forEach((row) => {
             if (row.startDate && row.endDate) {
                 const start = new Date(row.startDate);
                 const end = new Date(row.endDate);
@@ -124,48 +81,43 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
     const addEarningRow = (): void => {
         const newRow: EarningRow = {
             id: `row_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            startDate: '',
-            endDate: '',
+            startDate: "",
+            endDate: "",
             earnings: 0,
-            gathered: 'no'
+            gathered: "no",
         };
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            earningRows: [...prev.earningRows, newRow]
+            earningRows: [...prev.earningRows, newRow],
         }));
     };
 
     const removeEarningRow = (rowId: string): void => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            earningRows: prev.earningRows.filter(row => row.id !== rowId)
+            earningRows: prev.earningRows.filter((row) => row.id !== rowId),
         }));
     };
 
     const updateEarningRow = (rowId: string, field: keyof EarningRow, value: string | number): void => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            earningRows: prev.earningRows.map(row =>
+            earningRows: prev.earningRows.map((row) =>
                 row.id === rowId
                     ? {
                         ...row,
-                        [field]: field === 'earnings' ? (parseFloat(value.toString()) || 0) : value
+                        [field]: field === "earnings" ? parseFloat(value.toString()) || 0 : value,
                     }
                     : row
-            )
+            ),
         }));
     };
 
     const formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 
-    // Check if the pool was originally closed (to disable editing of other fields)
     const wasOriginallyClosed = initialData.status === "closed";
-
-    // Disable form fields if originally closed, but allow status changes and saving
     const isFormDisabled = wasOriginallyClosed || isSaving || isDeleting;
-
-    // Only disable buttons during API operations
     const areButtonsDisabled = isSaving || isDeleting;
 
     const handleSave = () => {
@@ -173,7 +125,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
     };
 
     const handleDelete = () => {
-        if (window.confirm('Are you sure you want to delete this liquidity pool?')) {
+        if (window.confirm("Are you sure you want to delete this liquidity pool?")) {
             removePool(formData.id);
         }
     };
@@ -184,6 +136,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                 formData.status === "closed" ? "opacity-75" : ""
             }`}
         >
+            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-indigo-600" />
@@ -191,8 +144,8 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                 </h2>
                 {formData.status === "closed" && (
                     <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full">
-                        Closed
-                    </span>
+            Closed
+          </span>
                 )}
             </div>
 
@@ -223,7 +176,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     />
                 </div>
 
-                {/* Range */}
+                {/* Price Range */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
                     <div className="grid grid-cols-2 gap-4">
@@ -287,14 +240,17 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {formData.earningRows.map((row, index) => (
-                                <div key={row.id} className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-lg">
+                            {formData.earningRows.map((row) => (
+                                <div
+                                    key={row.id}
+                                    className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-lg"
+                                >
                                     <div className="col-span-3">
                                         <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                                         <input
                                             type="date"
                                             value={row.startDate}
-                                            onChange={(e) => updateEarningRow(row.id, 'startDate', e.target.value)}
+                                            onChange={(e) => updateEarningRow(row.id, "startDate", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                                         />
@@ -304,7 +260,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                                         <input
                                             type="date"
                                             value={row.endDate}
-                                            onChange={(e) => updateEarningRow(row.id, 'endDate', e.target.value)}
+                                            onChange={(e) => updateEarningRow(row.id, "endDate", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                                         />
@@ -314,7 +270,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                                         <input
                                             type="number"
                                             value={row.earnings}
-                                            onChange={(e) => updateEarningRow(row.id, 'earnings', e.target.value)}
+                                            onChange={(e) => updateEarningRow(row.id, "earnings", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                                         />
@@ -323,7 +279,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                                         <label className="block text-xs font-medium text-gray-600 mb-1">Gathered</label>
                                         <select
                                             value={row.gathered}
-                                            onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}
+                                            onChange={(e) => updateEarningRow(row.id, "gathered", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                                         >
@@ -356,7 +312,6 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                         onChange={(e) => handleInputChange("comments", e.target.value)}
                         disabled={isFormDisabled}
                         rows={2}
-                        placeholder=""
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
                     />
                 </div>
@@ -383,7 +338,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Actions */}
                 <div className="flex justify-between items-center mt-6">
                     <button
                         onClick={handleSave}
@@ -396,8 +351,7 @@ const LiquidityPoolCard: React.FC<{ initialData: InitialData }> = ({ initialData
                     <button
                         onClick={handleDelete}
                         disabled={areButtonsDisabled}
-                        className="cursor-pointer flex items-center gap-2 px-6 py-3  text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
-                        title="Delete Pool"
+                        className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
                     >
                         <Trash2 className="w-4 h-4" />
                         {isDeleting ? "Deleting..." : "Delete"}
