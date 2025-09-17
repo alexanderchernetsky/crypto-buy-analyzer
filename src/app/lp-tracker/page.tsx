@@ -21,35 +21,61 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
 
     // Sort filtered pools by startDate (newest first)
     const sortedPools = useMemo(() => {
-        return [...filteredPools].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+        return [...filteredPools].sort((a, b) => new Date(b.earningRows[0].startDate).getTime() - new Date(a.earningRows[0].startDate).getTime());
     }, [filteredPools]);
 
     // -------- Summary Calculations --------
     const summary = useMemo(() => {
         const openPositions = pools.filter(p => p.status === 'open');
         const closedPositions = pools.filter(p => p.status === 'closed');
+
         const openPositionsCount = openPositions.length;
         const totalInvested = openPositions.reduce((sum, p) => sum + p.principal, 0);
-        const profitLoss = openPositions.reduce((sum, p) => sum + p.earnings, 0);
-        const realisedProfitLoss = closedPositions.reduce((sum, p) => sum + p.earnings, 0);
 
-        // Calculate total earning per day for open positions
+        // Total profit/loss for open positions
+        const totalProfitLoss = openPositions.reduce((sum, pool) => {
+            const poolEarnings = pool.earningRows.reduce((rowSum, row) => rowSum + row.earnings, 0);
+            return sum + poolEarnings;
+        }, 0);
+
+        // Realised profit/loss for open & closed positions
+        const realisedProfitLossClosed = closedPositions.reduce((sum, pool) => {
+            const poolEarnings = pool.earningRows.reduce((rowSum, row) => rowSum + row.earnings, 0);
+            return sum + poolEarnings;
+        }, 0);
+
+        const realisedProfitLossOpen = openPositions.reduce((sum, pool) => {
+            const poolEarnings = pool.earningRows.reduce((rowSum, row) => {
+                if (row.gathered === 'yes') {
+                    return rowSum + row.earnings;
+                }
+                return rowSum;
+            }, 0);
+            return sum + poolEarnings;
+        },0);
+
+        const realisedProfitLoss = realisedProfitLossClosed + realisedProfitLossOpen;
+
+        // Total earning per day for open positions
         const totalEarningPerDay = openPositions.reduce((sum, pool) => {
-            const startDate = new Date(pool.startDate);
-            const currentDate = new Date();
-            const daysDiff = Math.max(1, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-            const dailyEarning = pool.earnings / daysDiff;
-            return sum + dailyEarning;
+            const poolDailyEarnings = pool.earningRows.reduce((rowSum, row) => {
+                const startDate = new Date(row.startDate);
+                const endDate = new Date(row.endDate);
+                const daysDiff = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+                return rowSum + row.earnings / daysDiff;
+            }, 0);
+            return sum + poolDailyEarnings;
         }, 0);
 
         return {
             openPositionsCount,
             totalInvested,
-            totalProfitLoss: profitLoss,
+            totalProfitLoss,
             realisedProfitLoss,
             totalEarningPerDay,
         };
     }, [pools]);
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
