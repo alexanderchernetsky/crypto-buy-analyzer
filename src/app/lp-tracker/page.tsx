@@ -6,13 +6,13 @@ import LiquidityPoolCard from "@/components/LPTracker/LiquidityPoolCard";
 import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard";
 import { usePools } from "@/react-query/useLiquidityPools";
 import {useCoinGeckoTokenPrices} from "@/react-query/useCoinGeckoTokenPrices";
+import {CoinGeckoPriceResponse} from "@/utils/api/fetchTokenPrices";
 
 const LiquidityPoolsTrackerPage: React.FC = () => {
     const { data: pools = [] } = usePools();
     const symbols = pools.map(pool => pool.tokenSymbol);
     const uniqueSymbols = [...new Set(symbols)];
     const { data: prices = [] } = useCoinGeckoTokenPrices(uniqueSymbols);
-    console.log('prices', prices);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showClosed, setShowClosed] = useState(false);
 
@@ -176,7 +176,11 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                         </div>
                     ) : (
                         sortedPools.map((pool) => (
-                            <LiquidityPoolCard key={pool.id} initialData={pool} price={prices[pool.tokenSymbol]?.usd} />
+                            <LiquidityPoolCard
+                                key={pool.id}
+                                initialData={pool}
+                                price={(prices as CoinGeckoPriceResponse)[pool.tokenSymbol]?.usd ?? 0} // safely access price
+                            />
                         ))
                     )}
                 </div>

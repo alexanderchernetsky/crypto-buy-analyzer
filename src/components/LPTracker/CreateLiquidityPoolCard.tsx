@@ -37,6 +37,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
 
     const [formData, setFormData] = useState<NewPoolFormData>({
         poolName: "",
+        tokenSymbol: "",
         rangeFrom: 0,
         rangeTo: 0,
         principal: 0,
@@ -68,6 +69,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
         // reset form after submission
         setFormData({
             poolName: "",
+            tokenSymbol: "",
             rangeFrom: 0,
             rangeTo: 0,
             principal: 0,
