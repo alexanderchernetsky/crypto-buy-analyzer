@@ -7,6 +7,7 @@ import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard
 import { usePools } from "@/react-query/useLiquidityPools";
 import {useCoinGeckoTokenPrices} from "@/react-query/useCoinGeckoTokenPrices";
 import {CoinGeckoPriceResponse} from "@/utils/api/fetchTokenPrices";
+import {calculatePoolMetricsWithValidation} from "@/utils/calculatePoolMetrics";
 
 const LiquidityPoolsTrackerPage: React.FC = () => {
     const { data: pools = [] } = usePools();
@@ -63,13 +64,12 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
 
         // Total earning per day for open positions
         const totalEarningPerDay = openPositions.reduce((sum, pool) => {
-            const poolDailyEarnings = pool.earningRows.reduce((rowSum, row) => {
-                const startDate = new Date(row.startDate);
-                const endDate = new Date(row.endDate);
-                const daysDiff = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-                return rowSum + row.earnings / daysDiff;
-            }, 0);
-            return sum + poolDailyEarnings;
+            const metrics = calculatePoolMetricsWithValidation({
+                earningRows: pool.earningRows,
+                principal: pool.principal
+            });
+
+            return sum + metrics.earningPerDay;
         }, 0);
 
         return {
