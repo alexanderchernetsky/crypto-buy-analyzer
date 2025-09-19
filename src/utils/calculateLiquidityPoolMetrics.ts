@@ -1,4 +1,4 @@
-import {EarningRow} from "@/components/LPTracker/CreateLiquidityPoolCard";
+import { EarningRow } from "@/types/liquidity-pools";
 
 interface PoolMetrics {
     days: number;
@@ -8,18 +8,16 @@ interface PoolMetrics {
 
 interface CalculateMetricsParams {
     earningRows: EarningRow[];
-    principal: number;
 }
 
 /**
  * Calculates pool position metrics including total days, daily earnings, and APR
- * @param params - Object containing earning rows and principal amount
+ * @param params - Object containing earning rows
  * @returns PoolMetrics object with calculated values
  */
-export const calculatePoolMetrics = ({
-                                         earningRows,
-                                         principal
-                                     }: CalculateMetricsParams): PoolMetrics => {
+export const calculateLiquidityPoolMetrics = ({
+                                                  earningRows,
+                                              }: CalculateMetricsParams): PoolMetrics => {
     // Return zero values if no earning rows exist
     if (earningRows.length === 0) {
         return {
@@ -31,8 +29,9 @@ export const calculatePoolMetrics = ({
 
     let totalDays = 0;
     let totalEarnings = 0;
+    let totalPrincipal = 0;
 
-    // Calculate total days and earnings across all rows
+    // Calculate total days, earnings, and principal across all rows
     earningRows.forEach((row) => {
         if (row.startDate && row.endDate) {
             const start = new Date(row.startDate);
@@ -42,11 +41,12 @@ export const calculatePoolMetrics = ({
             totalDays += Math.max(0, days); // Ensure non-negative days
         }
         totalEarnings += row.earnings;
+        totalPrincipal += row.principal;
     });
 
     // Calculate metrics
     const earningPerDay = totalDays > 0 ? totalEarnings / totalDays : 0;
-    const dailyReturn = principal > 0 ? earningPerDay / principal : 0;
+    const dailyReturn = totalPrincipal > 0 ? earningPerDay / totalPrincipal : 0;
     const apr = dailyReturn * 365 * 100; // Convert to percentage
 
     return {
@@ -66,23 +66,22 @@ export const isValidEarningRow = (row: EarningRow): boolean => {
         row.startDate &&
         row.endDate &&
         new Date(row.startDate) <= new Date(row.endDate) &&
-        row.earnings >= 0
+        row.earnings >= 0 &&
+        row.principal >= 0
     );
 };
 
 /**
  * Enhanced version that only includes valid earning rows in calculations
- * @param params - Object containing earning rows and principal amount
+ * @param params - Object containing earning rows
  * @returns PoolMetrics object with calculated values
  */
-export const calculatePoolMetricsWithValidation = ({
-                                                       earningRows,
-                                                       principal
-                                                   }: CalculateMetricsParams): PoolMetrics => {
+export const calculateLiquidityPoolMetricsWithValidation = ({
+                                                                earningRows,
+                                                            }: CalculateMetricsParams): PoolMetrics => {
     const validRows = earningRows.filter(isValidEarningRow);
 
-    return calculatePoolMetrics({
+    return calculateLiquidityPoolMetrics({
         earningRows: validRows,
-        principal
     });
 };

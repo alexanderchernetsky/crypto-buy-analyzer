@@ -7,9 +7,9 @@ import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard
 import { usePools } from "@/react-query/useLiquidityPools";
 import {useCoinGeckoTokenPrices} from "@/react-query/useCoinGeckoTokenPrices";
 import {CoinGeckoPriceResponse} from "@/utils/api/fetchTokenPrices";
-import {calculatePoolMetricsWithValidation} from "@/utils/calculatePoolMetrics";
+import {calculatePoolsSummary} from "@/utils/calculateLiquidityPoolsSummary";
 
-const LiquidityPoolsTrackerPage: React.FC = () => {
+const LiquidityPoolsPage: React.FC = () => {
     const { data: pools = [] } = usePools();
     const symbols = pools.map(pool => pool.tokenSymbol);
     const uniqueSymbols = [...new Set(symbols)];
@@ -31,61 +31,12 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
     }, [filteredPools]);
 
     // -------- Summary Calculations --------
-    const summary = useMemo(() => {
-        const openPositions = pools.filter(p => p.status === 'open');
-        const closedPositions = pools.filter(p => p.status === 'closed');
-
-        const openPositionsCount = openPositions.length;
-        const totalInvested = openPositions.reduce((sum, p) => sum + p.principal, 0);
-
-        // Total profit/loss for open positions
-        const totalProfitLoss = openPositions.reduce((sum, pool) => {
-            const poolEarnings = pool.earningRows.reduce((rowSum, row) => rowSum + row.earnings, 0);
-            return sum + poolEarnings;
-        }, 0);
-
-        // Realised profit/loss for open & closed positions
-        const realisedProfitLossClosed = closedPositions.reduce((sum, pool) => {
-            const poolEarnings = pool.earningRows.reduce((rowSum, row) => rowSum + row.earnings, 0);
-            return sum + poolEarnings;
-        }, 0);
-
-        const realisedProfitLossOpen = openPositions.reduce((sum, pool) => {
-            const poolEarnings = pool.earningRows.reduce((rowSum, row) => {
-                if (row.gathered === 'yes') {
-                    return rowSum + row.earnings;
-                }
-                return rowSum;
-            }, 0);
-            return sum + poolEarnings;
-        },0);
-
-        const realisedProfitLoss = realisedProfitLossClosed + realisedProfitLossOpen;
-
-        // Total earning per day for open positions
-        const totalEarningPerDay = openPositions.reduce((sum, pool) => {
-            const metrics = calculatePoolMetricsWithValidation({
-                earningRows: pool.earningRows,
-                principal: pool.principal
-            });
-
-            return sum + metrics.earningPerDay;
-        }, 0);
-
-        return {
-            openPositionsCount,
-            totalInvested,
-            totalProfitLoss,
-            realisedProfitLoss,
-            totalEarningPerDay,
-        };
-    }, [pools]);
-
+    const summary = useMemo(() => calculatePoolsSummary(pools), [pools]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Enhanced Header with integrated Create Pool Button */}
+                {/* Page Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
                     <div className="flex items-center gap-4 mb-6 sm:mb-0">
                         <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
@@ -93,11 +44,13 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                Liquidity Pool Calculator
+                                Liquidity Pools
                             </h1>
-                            <p className="text-gray-600 text-sm mt-2">Track and manage your DeFi positions with ease</p>
+                            <p className="text-gray-600 text-sm mt-2">Track and manage your DeFi LP positions</p>
                         </div>
                     </div>
+
+                    {/* Action Buttons */}
                     <div className="flex items-center gap-4">
                         {/* Show Closed Toggle Button */}
                         <button
@@ -143,15 +96,15 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Enhanced Create Pool Form */}
+                {/* Create Pool Form */}
                 <AddLiquidityPoolCard onClose={() => setShowCreateForm(false)} isOpen={showCreateForm} />
 
-                {/* Enhanced Portfolio Summary */}
+                {/* Portfolio Summary */}
                 <div className="mb-12">
                     <LiquidityPoolsSummary {...summary} />
                 </div>
 
-                {/* Enhanced Pool Grid */}
+                {/* Pool Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {sortedPools.length === 0 ? (
                         <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
@@ -179,7 +132,7 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
                             <LiquidityPoolCard
                                 key={pool.id}
                                 initialData={pool}
-                                price={(prices as CoinGeckoPriceResponse)[pool.tokenSymbol]?.usd ?? 0} // safely access price
+                                price={(prices as CoinGeckoPriceResponse)[pool.tokenSymbol]?.usd ?? 0}
                             />
                         ))
                     )}
@@ -189,4 +142,4 @@ const LiquidityPoolsTrackerPage: React.FC = () => {
     );
 };
 
-export default LiquidityPoolsTrackerPage
+export default LiquidityPoolsPage;

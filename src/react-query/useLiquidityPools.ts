@@ -10,22 +10,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/database/firebase';
 import { getDocs } from 'firebase/firestore';
-import {EarningRow} from "@/components/LPTracker/CreateLiquidityPoolCard";
-
-// Define the shape of your Liquidity Pool data
-export type Pool = {
-    id: string;
-    poolName: string;
-    rangeFrom: number;
-    rangeTo: number;
-    principal: number;
-    status: 'open' | 'closed';
-    earningRows: EarningRow[];
-    tokenSymbol: string;
-};
-
-// Type for new Pool input (without id)
-export type NewPool = Omit<Pool, 'id'>;
+import {NewPool, Pool} from "@/types/liquidity-pools";
 
 // Firestore collection reference
 const poolsRef: CollectionReference<DocumentData> = collection(db, 'liquidity-pools');

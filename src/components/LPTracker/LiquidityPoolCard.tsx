@@ -3,26 +3,12 @@ import { DollarSign, Trash2, Plus, X } from "lucide-react";
 import { useUpdatePool, useRemovePool } from "@/react-query/useLiquidityPools";
 import { FormData } from "@/components/LPTracker/CreateLiquidityPoolCard";
 import formatCurrency from "@/utils/formatCurrency";
-import {calculatePoolMetricsWithValidation} from "@/utils/calculatePoolMetrics";
+import {calculateLiquidityPoolMetricsWithValidation} from "@/utils/calculateLiquidityPoolMetrics";
 import { formatPercentage } from "@/utils/formatPercentage";
-
-interface EarningRow {
-    id: string;
-    startDate: string;
-    endDate: string;
-    earnings: number;
-    gathered: "yes" | "no";
-    principal?: number; // Optional field - fallback to pool principal if not set
-}
-
-interface Calculations {
-    days: number;
-    earningPerDay: number;
-    apr: number;
-}
+import {Calculations, EarningRow} from "@/types/liquidity-pools";
 
 type FormField = keyof FormData;
-type NumericField = "rangeFrom" | "rangeTo" | "principal";
+type NumericField = "rangeFrom" | "rangeTo";
 
 const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({ initialData, price }) => {
     const [formData, setFormData] = useState<FormData>(initialData);
@@ -36,15 +22,14 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
     const { mutate: removePool, isPending: isDeleting } = useRemovePool();
 
     useEffect(() => {
-        const metrics = calculatePoolMetricsWithValidation({
+        const metrics = calculateLiquidityPoolMetricsWithValidation({
             earningRows: formData.earningRows,
-            principal: formData.principal
         });
         setCalculations(metrics);
     }, [formData]);
 
     const isNumericField = (field: FormField): field is NumericField => {
-        return ["rangeFrom", "rangeTo", "principal"].includes(field as NumericField);
+        return ["rangeFrom", "rangeTo"].includes(field as NumericField);
     };
 
     const handleInputChange = (field: FormField, value: string): void => {
@@ -61,7 +46,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
             endDate: "",
             earnings: 0,
             gathered: "no",
-            principal: formData.principal, // Use pool principal as default
+            principal: 1000, // Default principal for new rows
         };
 
         setFormData((prev) => ({
@@ -214,17 +199,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                 </div>
 
 
-                {/* Principal */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Principal Amount</label>
-                    <input
-                        type="number"
-                        value={formData.principal}
-                        onChange={(e) => handleInputChange("principal", e.target.value)}
-                        disabled={isFormDisabled}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                    />
-                </div>
+
 
                 {/* Earning Rows */}
                 <div>
@@ -284,7 +259,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                                         <label className="block text-xs font-medium text-gray-600 mb-1">Principal</label>
                                         <input
                                             type="number"
-                                            value={row.principal || formData.principal}
+                                            value={row.principal || 0}
                                             onChange={(e) => updateEarningRow(row.id, "principal", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
