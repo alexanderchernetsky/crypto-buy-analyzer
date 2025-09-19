@@ -1,509 +1,524 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import {TrendingUp, RefreshCw, Plus, Trash2, BarChart3, Edit} from 'lucide-react';
-import Link from 'next/link';
-import { fetchPrices } from '@/utils/api/fetchTokenPrices';
-import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
-import { getBuySignal } from '@/utils/getBuySignal';
-import { TokenForm } from '@/components/CryptoBuyAnalyzer/CreateEditTokenForm';
+import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Filter } from 'lucide-react';
 import {
-  useAddTokenToBuyAnalyzer,
-  useCryptoBuyAnalyzer,
-  useRemoveTokenFromBuyAnalyzer,
-  useUpdateTokenInBuyAnalyzer
-} from '@/react-query/useCryptoBuyAnalyzer';
+    useInvestments,
+    useAddInvestment,
+    useRemoveInvestment,
+    useUpdateInvestment,
+    Investment
+} from '@/react-query/useInvestments';
+import { fetchPrices } from '@/utils/api/fetchTokenPrices';
+import { CryptoPortfolioSummary } from '@/components/CryptoTracker/CryptoPortfolioSummary';
+import { AddCryptoInvestmentForm } from "@/components/CryptoTracker/AddCryptoInvestmentForm";
+import { processCryptoTrackerData } from "@/utils/processCryptoTrackerData";
 
-interface TokenInputForm {
-  tokenName: string;
-  symbol: string;
-  allTimeLow: string;
-  allTimeHigh: string;
-  oneYearLow: string;
-  oneYearHigh: string;
-  oneMonthLow: string;
-  oneMonthHigh: string;
+export interface InvestmentFormData {
+    tokenName: string
+    symbol: string
+    quantity: string
+    purchasePrice: string
+    amountPaid: string
+    dateAdded: string
+    status: string
+    sold: string
+    closePrice: string
+    notes: string
 }
 
-interface TokenData {
-  id: string;
-  tokenName: string;
-  symbol: string;
-  allTimeLow: number;
-  allTimeHigh: number;
-  oneYearLow: number;
-  oneYearHigh: number;
-  oneMonthLow: number;
-  oneMonthHigh: number;
-  currentPrice: number;
-  priceIndex: number | null;
-  oneYearPriceIndex: number | null;
-  oneMonthPriceIndex: number | null;
-  piBuySignal: ReturnType<typeof getBuySignal>;
-  oneYearPiBuySignal: ReturnType<typeof getBuySignal>;
-  oneMonthPiBuySignal: ReturnType<typeof getBuySignal>;
-  lastUpdated: string;
-}
+const CryptoTrackerPage = () => {
+    const { data: investments = [] } = useInvestments();
+    const addMutation = useAddInvestment();
+    const removeMutation = useRemoveInvestment();
+    const updateMutation = useUpdateInvestment();
 
-const CryptoBuyAnalyzer: React.FC = () => {
-  const { data: tokens = [] } = useCryptoBuyAnalyzer();
-  const [loading, setLoading] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editingToken, setEditingToken] = useState<TokenData | null>(null);
-  const [analyzedTokens, setAnalyzedTokens] = useState<TokenData[]>([]);
-  const addMutation = useAddTokenToBuyAnalyzer();
-  const updateMutation = useUpdateTokenInBuyAnalyzer();
-  const deleteMutation = useRemoveTokenFromBuyAnalyzer();
-
-  const [formData, setFormData] = useState<TokenInputForm>({
-    tokenName: '',
-    symbol: '',
-    allTimeLow: '',
-    allTimeHigh: '',
-    oneYearLow: '',
-    oneYearHigh: '',
-    oneMonthLow: '',
-    oneMonthHigh: '',
-  });
-
-  const [editFormData, setEditFormData] = useState<TokenInputForm>({
-    tokenName: '',
-    symbol: '',
-    allTimeLow: '',
-    allTimeHigh: '',
-    oneYearLow: '',
-    oneYearHigh: '',
-    oneMonthLow: '',
-    oneMonthHigh: '',
-  });
-
-  useEffect(() => {
-    if (tokens.length > 0) {
-      updateAnalysis();
-    }
-  }, [tokens]);
-
-  const updateAnalysis = async () => {
-    if (tokens.length === 0) return;
-    setLoading(true);
-
-    try {
-      const tokensWithData = tokens.filter((inv) => inv.allTimeLow && inv.allTimeHigh && inv.symbol);
-
-      if (tokensWithData.length === 0) {
-        setAnalyzedTokens([]);
-        return;
-      }
-
-      const uniqueSymbols = [...new Set(tokensWithData.map((inv) => inv.symbol))];
-      const priceData = await fetchPrices(uniqueSymbols);
-
-      const analyzed = tokensWithData.map((inv ) => {
-        const currentPrice = priceData[inv.symbol]?.usd ?? 0;
-        const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
-        const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
-        const oneMonthPriceIndex = inv.oneMonthLow && inv.oneMonthHigh
-            ? calculatePriceIndex(currentPrice, Number(inv.oneMonthLow), Number(inv.oneMonthHigh))
-            : null;
-        const piBuySignal = getBuySignal(priceIndex);
-        const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
-        const oneMonthPiBuySignal = getBuySignal(oneMonthPriceIndex);
-
-        return {
-          id: inv.id,
-          tokenName: inv.tokenName,
-          symbol: inv.symbol,
-          currentPrice,
-          priceIndex,
-          oneYearPriceIndex,
-          oneMonthPriceIndex,
-          piBuySignal,
-          oneYearPiBuySignal,
-          oneMonthPiBuySignal,
-          lastUpdated: new Date().toLocaleTimeString(),
-          allTimeLow: inv.allTimeLow,
-          allTimeHigh: inv.allTimeHigh,
-          oneYearLow: inv.oneYearLow,
-          oneYearHigh: inv.oneYearHigh,
-          oneMonthLow: inv.oneMonthLow || 0,
-          oneMonthHigh: inv.oneMonthHigh || 0,
-        };
-      }) as TokenData[];
-
-      const uniqueAnalyzed = analyzed.filter((token, index, self) =>
-          index === self.findIndex((t) => t.symbol === token.symbol)
-      );
-
-      const signalPriority: Record<string, number> = {
-        'STRONG BUY': 1,
-        BUY: 2,
-        CAUTION: 3,
-        AVOID: 4,
-        UNKNOWN: 5,
-      };
-
-      uniqueAnalyzed.sort(
-          (a, b) => signalPriority[a.piBuySignal.signal] - signalPriority[b.piBuySignal.signal]
-      );
-
-      setAnalyzedTokens(uniqueAnalyzed);
-    } catch (err) {
-      console.error(err);
-      alert('Error updating analysis');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = formData;
-    if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh || !oneMonthLow || !oneMonthHigh) {
-      return alert('Fill all required fields');
-    }
-
-    setLoading(true);
-
-    try {
-      const data = await fetchPrices([symbol]);
-      const currentPrice = data[symbol]?.usd;
-
-      if (!currentPrice) throw new Error('Invalid symbol');
-      const priceIndex = calculatePriceIndex(currentPrice,  parseFloat(formData.allTimeLow), parseFloat(formData.allTimeHigh));
-      const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, parseFloat(formData.oneYearLow), parseFloat(formData.oneYearHigh));
-
-      const newToken = {
-        tokenName,
-        symbol: symbol.toLowerCase(),
-        allTimeLow: Number(allTimeLow),
-        allTimeHigh: Number(allTimeHigh),
-        oneYearLow: Number(oneYearLow),
-        oneYearHigh: Number(oneYearHigh),
-        oneMonthLow: Number(oneMonthLow),
-        oneMonthHigh: Number(oneMonthHigh),
-        currentPrice,
-        priceIndex,
-        oneYearPriceIndex,
-        lastUpdated: new Date().toLocaleTimeString(),
-      };
-
-      await addMutation.mutateAsync(newToken);
-
-      setFormData({
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showClosedPositions, setShowClosedPositions] = useState(false);
+    const [formData, setFormData] = useState<InvestmentFormData>({
         tokenName: '',
         symbol: '',
-        allTimeLow: '',
-        allTimeHigh: '',
-        oneYearLow: '',
-        oneYearHigh: '',
-        oneMonthLow: '',
-        oneMonthHigh: '',
-      });
-      setShowAddForm(false);
-    } catch (err) {
-      alert('Could not add investment');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (token: TokenData) => {
-    setEditingToken(token);
-    setEditFormData({
-      tokenName: token.tokenName,
-      symbol: token.symbol,
-      allTimeLow: token.allTimeLow.toString(),
-      allTimeHigh: token.allTimeHigh.toString(),
-      oneYearLow: token.oneYearLow.toString(),
-      oneYearHigh: token.oneYearHigh.toString(),
-      oneMonthLow: token.oneMonthLow.toString(),
-      oneMonthHigh: token.oneMonthHigh.toString(),
+        quantity: '',
+        purchasePrice: '',
+        amountPaid: '',
+        dateAdded: '',
+        status: 'open',
+        sold: '',
+        closePrice: '',
+        notes: '',
     });
-    setShowEditForm(true);
-    setShowAddForm(false); // Close add form if open
-  };
 
-  const handleEditSubmit = async () => {
-    if (!editingToken) return;
+    // edit
+    const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+    const [updatedInvestments, setUpdatedInvestments] = useState<Investment[]>([]);
 
-    const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = editFormData;
-    if (!tokenName || !symbol || !allTimeLow || !allTimeHigh || !oneYearLow || !oneYearHigh || !oneMonthLow || !oneMonthHigh) {
-      return alert('Fill all required fields');
-    }
+    // sorting
+    const [sortByPL, setSortByPL] = useState(false);
+    const [sortPLPercentageAsc, setSortPLPercentageAsc] = useState(true);
 
-    setLoading(true);
+    useEffect(() => {
+        if (!investments || investments.length === 0) return;
+        updatePrices();
 
-    try {
-      const data = await fetchPrices([symbol]);
-      const currentPrice = data[symbol]?.usd;
+        const interval = setInterval(updatePrices, 60000); // every 60 seconds
+        return () => clearInterval(interval);
+    }, [investments]);
 
-      if (!currentPrice) throw new Error('Invalid symbol');
+    const updatePrices = async () => {
+        if (!investments || investments.length === 0) return;
+        setLoading(true);
 
-      const updatedToken = {
-        id: editingToken.id,
-        tokenName,
-        symbol: symbol.toLowerCase(),
-        allTimeLow: Number(allTimeLow),
-        allTimeHigh: Number(allTimeHigh),
-        oneYearLow: Number(oneYearLow),
-        oneYearHigh: Number(oneYearHigh),
-        oneMonthLow: Number(oneMonthLow),
-        oneMonthHigh: Number(oneMonthHigh),
-      };
+        try {
+            // Filter out closed investments for price updates
+            const openInvestments = investments.filter(inv => inv.status !== 'closed');
+            const closedInvestments = investments.filter(inv => inv.status === 'closed');
 
-      await updateMutation.mutateAsync(updatedToken);
+            let enriched: Investment[] = [];
 
-      setEditFormData({
-        tokenName: '',
-        symbol: '',
-        allTimeLow: '',
-        allTimeHigh: '',
-        oneYearLow: '',
-        oneYearHigh: '',
-        oneMonthLow: '',
-        oneMonthHigh: '',
-      });
-      setShowEditForm(false);
-      setEditingToken(null);
-    } catch (err) {
-      alert('Could not update token');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+            // Only fetch prices for open investments
+            if (openInvestments.length > 0) {
+                const data = await fetchPrices(openInvestments.map(i => i.symbol));
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this token?')) return;
+                // Update open investments with new prices
+                const updatedOpenInvestments = openInvestments.map(inv => {
+                    const price = data[inv.symbol]?.usd ?? inv.currentPrice ?? 0;
+                    const currentValue = inv.quantity * price;
+                    const profitLoss = currentValue - inv.amountPaid;
+                    const profitLossPercentage = (profitLoss / inv.amountPaid) * 100;
 
-    try {
-      await deleteMutation.mutateAsync(id);
-      setAnalyzedTokens(prev => prev.filter(token => token.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete token.');
-    }
-  };
+                    return {
+                        ...inv,
+                        currentPrice: price,
+                        currentValue,
+                        profitLoss,
+                        profitLossPercentage,
+                        lastUpdated: new Date().toLocaleTimeString(),
+                    };
+                });
 
-  return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
-            <div className="flex flex-col lg:flex-row gap-3 items-center justify-between">
-              <h1 className="text-2xl font-bold text-slate-200 flex flex-row items-center gap-2">
-                <TrendingUp className="text-emerald-500" />
-                Crypto Price Indexes
-              </h1>
-              <div className="flex gap-2">
-                <button
-                    onClick={updateAnalysis}
-                    disabled={loading || tokens.length === 0}
-                    className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
-                  ${loading || tokens.length === 0 ? 'bg-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
-                `}
-                >
-                  <RefreshCw
-                      className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
-                  />
-                  Refresh Analysis
-                </button>
-                <button
-                    onClick={() => {
-                      setShowAddForm(!showAddForm);
-                      setShowEditForm(false); // Close edit form if open
-                    }}
-                    className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Token
-                </button>
-              </div>
-            </div>
-          </div>
+                enriched = [...updatedOpenInvestments];
+            }
 
-          {/* Add Investment Form */}
-          {showAddForm && (
-              <TokenForm
-                  mode="add"
-                  formData={formData}
-                  setFormData={setFormData}
-                  loading={loading}
-                  handleSubmit={handleSubmit}
-                  onCancel={() => setShowAddForm(false)}
-              />
-          )}
+            // Keep closed investments with their existing values (no price updates)
+            const preservedClosedInvestments = closedInvestments.map(inv => {
+                const closePrice = inv.closePrice ?? 0;
+                const quantity = inv.quantity ?? 0;
+                const amountPaid = inv.amountPaid ?? 0;
 
-          {/* Edit Investment Form */}
-          {showEditForm && editingToken && (
-              <TokenForm
-                  mode="edit"
-                  formData={editFormData}
-                  setFormData={setEditFormData}
-                  loading={loading}
-                  handleSubmit={handleEditSubmit}
-                  onCancel={() => setShowEditForm(false)}
-                  tokenName={editingToken.tokenName}
-              />
-          )}
+                const currentValue = quantity * closePrice;
+                const profitLoss = currentValue - amountPaid;
+                const profitLossPercentage = (profitLoss / amountPaid) * 100;
 
-          {/* Analysis Table */}
-          <div className="bg-slate-800 rounded-xl border border-slate-700 mt-6 overflow-x-auto">
-            <table className="w-full table-auto border-collapse">
-              <thead>
-              <tr>
-                <th className="border-b border-slate-700 px-4 py-2 text-left text-sm font-semibold text-slate-300">Token</th>
-                <th className="border-b border-slate-700 px-4 py-2 text-right text-sm font-semibold text-slate-300">Current Price</th>
-                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">PI</th>
-                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">1-Y PI</th>
-                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">1-M PI</th>
-                <th className="border-b border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-300">Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              {analyzedTokens.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-slate-400">
-                      {tokens.length === 0
-                          ? 'No tokens found. Add tokens data to see buy analysis.'
-                          : 'No tokens with sufficient price index data found. Please add All-time High/Low data to your tokens.'
-                      }
-                    </td>
-                  </tr>
-              ) : (
-                  analyzedTokens.map(token => (
-                      <tr key={token.id} className="border-b border-slate-700 last:border-0 hover:bg-slate-700">
-                        <td className="px-4 py-3">
-                          <div>
-                            <div className="font-semibold text-slate-100">{token.tokenName}</div>
-                            <div className="text-xs text-slate-400">{token.symbol}</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-50">${token.currentPrice.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-center">
-                          {token.piBuySignal ? (
-                              <div
-                                  className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
-                                  style={{
-                                    color: token.piBuySignal.color,
-                                    backgroundColor: `${token.piBuySignal.color}15`,
-                                    border: `1px solid ${token.piBuySignal.color}30`,
-                                  }}
-                                  title={`${(Number(token.priceIndex) * 100).toFixed(1)}%`}
-                              >
-                                {token.priceIndex !== null
-                                    ? `${(token.priceIndex * 100).toFixed(1)}%`
-                                    : '—'}
-                                {' '}
-                                {token.piBuySignal.text}
-                              </div>
-                          ) : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {token.oneYearPiBuySignal ? (
-                              <div
-                                  className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
-                                  style={{
-                                    color: token.oneYearPiBuySignal.color,
-                                    backgroundColor: `${token.oneYearPiBuySignal.color}15`,
-                                    border: `1px solid ${token.oneYearPiBuySignal.color}30`,
-                                  }}
-                                  title={`${(Number(token.oneYearPriceIndex) * 100).toFixed(1)}%`}
-                              >
-                                {token.oneYearPriceIndex !== null
-                                    ? `${(token.oneYearPriceIndex * 100).toFixed(1)}%`
-                                    : '—'}
-                                {' '}
-                                {token.oneYearPiBuySignal.text}
-                              </div>
-                          ) : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {token.oneMonthPiBuySignal ? (
-                              <div
-                                  className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
-                                  style={{
-                                    color: token.oneMonthPiBuySignal.color,
-                                    backgroundColor: `${token.oneMonthPiBuySignal.color}15`,
-                                    border: `1px solid ${token.oneMonthPiBuySignal.color}30`,
-                                  }}
-                                  title={`${token.oneMonthPriceIndex !== null ? (Number(token.oneMonthPriceIndex) * 100).toFixed(1) : '—'}%`}
-                              >
-                                {token.oneMonthPriceIndex !== null
-                                    ? `${(token.oneMonthPriceIndex * 100).toFixed(1)}%`
-                                    : '—'}
-                                {' '}
-                                {token.oneMonthPiBuySignal.text}
-                              </div>
-                          ) : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
+                return {
+                    ...inv,
+                    currentPrice: closePrice,              // For display consistency
+                    currentValue: currentValue,            // Fixed at sell time
+                    profitLoss: profitLoss,
+                    profitLossPercentage: profitLossPercentage,
+                    // lastUpdated not needed
+                };
+            });
+
+            // Combine updated open investments with preserved closed investments
+            enriched = [...enriched, ...preservedClosedInvestments];
+
+            setUpdatedInvestments(enriched);
+        } catch (err) {
+            console.error(err);
+            alert('Error updating prices');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // EDIT
+    const handleEdit = (investment: Investment) => {
+        setFormData({
+            tokenName: investment.tokenName,
+            symbol: investment.symbol,
+            quantity: investment.quantity.toString(),
+            purchasePrice: investment.purchasePrice.toString(),
+            amountPaid: investment.amountPaid.toString(),
+            dateAdded: investment.dateAdded || '',
+            status: investment.status || 'open',
+            sold: investment.sold?.toString() || '',
+            closePrice: investment.closePrice?.toString() || '',
+            notes: investment.notes || '',
+        });
+        setEditingInvestment(investment);
+        setShowAddForm(true);
+    };
+
+    // CREATE
+    const handleSubmit = async () => {
+        const { tokenName, symbol, quantity, purchasePrice, amountPaid } = formData;
+        if (!tokenName || !symbol || !quantity || !purchasePrice) {
+            return alert('Fill all required fields');
+        }
+
+        const qty = parseFloat(quantity);
+        const price = parseFloat(purchasePrice);
+        const paid = amountPaid ? parseFloat(amountPaid) : qty * price;
+        const sold = formData.sold ? parseFloat(formData.sold) : 0;
+        const closePrice = formData.closePrice ? parseFloat(formData.closePrice) : 0;
+
+        setLoading(true);
+        try {
+            const data = await fetchPrices([symbol]);
+            const currentPrice = data[symbol]?.usd;
+
+            if (!currentPrice) throw new Error('Invalid symbol');
+
+            const currentValue = qty * currentPrice;
+            const profitLoss = currentValue - paid;
+            const profitLossPercentage = (profitLoss / paid) * 100;
+
+            if (editingInvestment) {
+                // UPDATE
+                const updated = {
+                    ...editingInvestment,
+                    tokenName,
+                    symbol: symbol.toLowerCase(),
+                    quantity: qty,
+                    purchasePrice: price,
+                    amountPaid: paid,
+                    sold: sold,
+                    closePrice: closePrice,
+                    currentPrice,
+                    currentValue,
+                    profitLoss,
+                    profitLossPercentage,
+                    dateAdded: formData.dateAdded || new Date().toLocaleDateString(),
+                    lastUpdated: new Date().toLocaleTimeString(),
+                    status: formData.status || 'open',
+                    notes: formData.notes || '',
+                };
+
+                await updateMutation.mutateAsync(updated);
+            } else {
+                // ADD
+                const newInvestment = {
+                    tokenName,
+                    symbol: symbol.toLowerCase(),
+                    quantity: qty,
+                    purchasePrice: price,
+                    amountPaid: paid,
+                    sold: sold,
+                    closePrice: closePrice,
+                    currentPrice,
+                    currentValue,
+                    profitLoss,
+                    profitLossPercentage,
+                    dateAdded: formData.dateAdded || new Date().toLocaleDateString(),
+                    lastUpdated: new Date().toLocaleTimeString(),
+                    status: formData.status || 'open',
+                    notes: formData.notes || '',
+                };
+
+                await addMutation.mutateAsync(newInvestment);
+            }
+
+            // clear form
+            setFormData({
+                tokenName: '',
+                symbol: '',
+                quantity: '',
+                purchasePrice: '',
+                sold: '',
+                amountPaid: '',
+                dateAdded: '',
+                status: 'open',
+                closePrice: '',
+                notes: '',
+            });
+            setShowAddForm(false);
+            setEditingInvestment(null);
+        } catch (err) {
+            alert('Could not add investment');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // DELETE
+    const handleRemove = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this investment? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await removeMutation.mutateAsync(id);
+        } catch (err) {
+            alert('Failed to remove');
+        }
+    };
+
+    const portfolio = updatedInvestments.length ? updatedInvestments : investments;
+
+    // Filter portfolio based on showClosedPositions toggle
+    const filteredPortfolio = showClosedPositions
+        ? portfolio
+        : portfolio.filter(investment => investment.status !== 'closed');
+
+    const totalInvested = filteredPortfolio.reduce((sum, i) => sum + i.amountPaid, 0);
+    const totalCurrentValue = filteredPortfolio.reduce((sum, i) => sum + (i.currentValue ?? 0), 0);
+    const totalProfitLoss = totalCurrentValue - totalInvested;
+    const totalProfitLossPercentage = totalInvested > 0 ? (totalProfitLoss / totalInvested) * 100 : 0;
+
+    // That's the data which is shown in the table, sorting is done here
+    const processedData = React.useMemo(() => {
+        const processed = processCryptoTrackerData(filteredPortfolio);
+        if (!sortByPL) return processed;
+
+        const sorted = [...processed].sort((a, b) => {
+            const aVal = a.profitLossPercentage ?? 0;
+            const bVal = b.profitLossPercentage ?? 0;
+            return sortPLPercentageAsc ? aVal - bVal : bVal - aVal;
+        });
+
+        return sorted;
+    }, [filteredPortfolio, sortByPL, sortPLPercentageAsc]);
+
+    // Count closed and open positions
+    const closedPositionsCount = portfolio.filter(inv => inv.status === 'closed').length;
+    const openPositionsCount = portfolio.filter(inv => inv.status !== 'closed').length;
+    const realisedProfitLoss = portfolio.filter(inv => inv.status === 'closed').reduce((sum, i) => sum + (i.currentValue - i.amountPaid), 0);
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
+            <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                    <div className="flex flex-col lg:flex-row gap-3 items-center justify-between mb-6">
+                        <h1 className="text-2xl font-bold text-slate-200 flex items-center gap-2">
+                            <DollarSign className="text-emerald-500" />
+                            Crypto Investment Tracker
+                        </h1>
+                        <div className="flex flex-wrap gap-2">
                             <button
-                                onClick={() => handleEdit(token)}
-                                className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                                title="Edit token"
+                                onClick={updatePrices}
+                                disabled={loading || investments.length === 0}
+                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                    ${loading || investments.length === 0 ? 'bg-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
+                                `}
                             >
-                              <Edit className="w-4 h-4" />
+                                <RefreshCw
+                                    className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                                />
+                                Refresh Prices
                             </button>
                             <button
-                                onClick={() => handleDelete(token.id)}
-                                className="text-red-500 hover:text-red-700 cursor-pointer"
-                                title="Delete token"
+                                onClick={() => setShowClosedPositions(!showClosedPositions)}
+                                disabled={closedPositionsCount === 0}
+                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                    ${showClosedPositions
+                                    ? 'bg-blue-600 hover:bg-blue-700'
+                                    : 'bg-slate-600 hover:bg-slate-700'
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
-                              <Trash2 className="w-4 h-4" />
+                                <Filter className="w-4 h-4" />
+                                {showClosedPositions ? 'Hide' : 'Show'} Closed ({closedPositionsCount})
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                  ))
-              )}
-              </tbody>
-            </table>
-          </div>
+                            <button
+                                onClick={() => setShowAddForm(!showAddForm)}
+                                className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Investment
+                            </button>
+                        </div>
+                    </div>
 
-          {/* Legend Section */}
-          <div className="grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 mt-6">
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-emerald-600" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Strong Buy</div>
-                <p className="text-xs text-slate-400">
-                  Price is in the lower 10% of its range.
-                </p>
-              </div>
+                    {/* Portfolio Summary */}
+                    <CryptoPortfolioSummary
+                        totalInvested={totalInvested}
+                        totalCurrentValue={totalCurrentValue}
+                        totalProfitLoss={totalProfitLoss}
+                        totalProfitLossPercentage={totalProfitLossPercentage}
+                        realisedProfitLoss={realisedProfitLoss}
+                        openPositionsCount={openPositionsCount}
+                    />
+                </div>
+
+                {/* Add Investment Form */}
+                {showAddForm && (
+                    <AddCryptoInvestmentForm
+                        editingInvestment={editingInvestment}
+                        formData={formData}
+                        setFormData={setFormData}
+                        loading={loading}
+                        setEditingInvestment={setEditingInvestment}
+                        handleSubmit={handleSubmit}
+                        setShowAddForm={setShowAddForm}
+                    />
+                )}
+
+                {/* Investments Table */}
+                <div className="bg-slate-800 rounded-xl border border-slate-700 mt-6 overflow-x-auto">
+                    <table className="w-full min-w-[1400px] table-auto border-collapse">
+                        <thead>
+                        <tr>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Date of Purchase
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Token
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Quantity
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Purchase Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Amount Paid
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Current Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Current Value
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Profit/Loss
+                            </th>
+                            <th
+                                onClick={() => {
+                                    if (!sortByPL) setSortByPL(true);
+                                    else setSortPLPercentageAsc(prev => !prev);
+                                }}
+                                title="Click to sort by P/L %"
+                                className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300 cursor-pointer hover:bg-slate-700"
+                            >
+                                P/L % {sortByPL ? (sortPLPercentageAsc ? '↑' : '↓') : ''}
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Sold %
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Status
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-right text-sm font-semibold text-slate-300">
+                                Close Price
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-left text-sm font-semibold text-slate-300">
+                                Notes
+                            </th>
+                            <th className="border-b border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-300">
+                                Actions
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredPortfolio.length === 0 ? (
+                            <tr>
+                                <td
+                                    colSpan={14}
+                                    className="px-4 py-10 text-center text-sm text-slate-400"
+                                >
+                                    {portfolio.length === 0
+                                        ? 'No investments added yet. Click "Add Investment" to get started!'
+                                        : showClosedPositions
+                                            ? 'No closed positions found.'
+                                            : 'No open positions found. Toggle "Show Closed" to view closed positions.'}
+                                </td>
+                            </tr>
+                        ) : (
+                            processedData.map(investment => (
+                                <tr
+                                    key={investment.id}
+                                    className={`border-b border-slate-700 last:border-0 hover:bg-slate-700 transition-colors duration-200 ${
+                                        investment.status === 'closed'
+                                            ? 'bg-slate-600/30'
+                                            : ''
+                                    }`}
+                                >
+                                    <td className="px-4 py-3 text-sm text-slate-300">
+                                        {investment.dateAdded
+                                            ? new Date(investment.dateAdded).toLocaleDateString()
+                                            : '—'}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div>
+                                            <div className="font-semibold text-slate-100">{investment.tokenName}</div>
+                                            <div className="text-xs text-slate-400 uppercase">{investment.symbol}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">{investment.quantity.toFixed(4)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.purchasePrice.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.amountPaid.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">${investment.currentPrice.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono font-semibold">${investment.currentValue.toFixed(2)}</td>
+                                    <td
+                                        className={`px-4 py-3 text-right font-mono font-semibold ${
+                                            investment.profitLoss >= 0
+                                                ? 'text-emerald-400'
+                                                : 'text-red-400'
+                                        }`}
+                                    >
+                                        ${investment.profitLoss.toFixed(2)}
+                                    </td>
+                                    <td
+                                        className={`px-4 py-3 text-right font-mono font-semibold ${
+                                            investment.profitLossPercentage >= 0
+                                                ? 'text-emerald-400'
+                                                : 'text-red-400'
+                                        }`}
+                                    >
+                                        {investment.profitLossPercentage >= 0 ? '+' : ''}
+                                        {investment.profitLossPercentage.toFixed(2)}%
+                                    </td>
+                                    <td className="px-4 py-3 text-center text-slate-300">
+                                        {investment.sold ? `${investment.sold}%` : '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-md capitalize ${
+                                                investment.status === 'closed'
+                                                    ? 'bg-slate-600 text-slate-200'
+                                                    : 'bg-emerald-600/20 text-emerald-400'
+                                            }`}>
+                                                {investment.status || 'open'}
+                                            </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-slate-100 font-mono">
+                                        {investment.closePrice
+                                            ? `$${investment.closePrice.toFixed(2)}`
+                                            : '—'}
+                                    </td>
+                                    <td
+                                        className="px-4 py-3 max-w-[150px] truncate text-xs text-slate-400"
+                                        title={investment.notes || ''}
+                                    >
+                                        {investment.notes || '—'}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex justify-center gap-2">
+                                            <button
+                                                onClick={() => handleEdit(investment)}
+                                                title="Edit"
+                                                className="text-blue-500 hover:text-blue-400 p-1 rounded hover:bg-slate-600 transition"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleRemove(investment.id)}
+                                                title="Remove"
+                                                className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-slate-600 transition"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-lime-500" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Buy</div>
-                <p className="text-xs text-slate-400">
-                  Price is in the lower 40% of its range.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-yellow-500" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Caution</div>
-                <p className="text-xs text-slate-400">
-                  Price is mid-range: 40-60% of its range.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-red-600" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Avoid</div>
-                <p className="text-xs text-slate-400">
-                  Price is high: above 60% of its range.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-  );
+    );
 };
 
-export default CryptoBuyAnalyzer;
+export default CryptoTrackerPage;

@@ -19,7 +19,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
     {
-        href: '/crypto-tracker',
+        href: '/',
         label: 'Investments',
         icon: BarChart3,
         description: 'Overview of all positions'
@@ -31,7 +31,7 @@ const menuItems: MenuItem[] = [
         description: 'Track LP positions'
     },
     {
-        href: '/',
+        href: '/price-indexes',
         label: 'Price Indexes',
         icon: TrendingUp,
         description: 'Check price indexes'

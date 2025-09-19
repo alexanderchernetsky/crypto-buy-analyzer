@@ -1,5 +1,5 @@
 import React from 'react';
-import {InvestmentFormData} from "@/app/crypto-tracker/page";
+import {InvestmentFormData} from "@/app/page";
 import { Investment } from '@/react-query/useInvestments';
 
 export const AddCryptoInvestmentForm = ({
