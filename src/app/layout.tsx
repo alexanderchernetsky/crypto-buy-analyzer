@@ -1,8 +1,9 @@
+// app/layout.tsx
 'use client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import Menu from '@/components/Menu/Menu';
 import "./globals.css";
-
 
 export default function RootLayout({
                                        children,
@@ -13,9 +14,19 @@ export default function RootLayout({
 
     return (
         <html lang="en">
-        <body>
+        <body className="bg-gray-50 overflow-hidden">
         <QueryClientProvider client={queryClient}>
-            {children}
+            <div className="flex h-screen">
+                {/* App Menu Sidebar */}
+                <Menu />
+
+                {/* Main Content Area */}
+                <main className="flex-1 overflow-y-auto lg:pl-0 pt-20 lg:pt-0">
+                    <div className="min-h-full">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </QueryClientProvider>
         </body>
         </html>

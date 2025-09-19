@@ -297,13 +297,6 @@ const CryptoTrackerPage = () => {
                             Crypto Investment Tracker
                         </h1>
                         <div className="flex flex-wrap gap-2">
-                            <Link
-                                href="/"
-                                className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
-                            >
-                                <TrendingUp className="w-4 h-4" />
-                                Price Indexes
-                            </Link>
                             <button
                                 onClick={updatePrices}
                                 disabled={loading || investments.length === 0}

@@ -296,13 +296,6 @@ const CryptoBuyAnalyzer: React.FC = () => {
                 Crypto Price Indexes
               </h1>
               <div className="flex gap-2">
-                <Link
-                    href="/crypto-tracker"
-                    className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 transition"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Crypto Tracker
-                </Link>
                 <button
                     onClick={updateAnalysis}
                     disabled={loading || tokens.length === 0}
