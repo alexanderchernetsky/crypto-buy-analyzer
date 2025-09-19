@@ -12,6 +12,7 @@ interface EarningRow {
     endDate: string;
     earnings: number;
     gathered: "yes" | "no";
+    principal?: number; // Optional field - fallback to pool principal if not set
 }
 
 interface Calculations {
@@ -60,6 +61,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
             endDate: "",
             earnings: 0,
             gathered: "no",
+            principal: formData.principal, // Use pool principal as default
         };
 
         setFormData((prev) => ({
@@ -82,7 +84,9 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                 row.id === rowId
                     ? {
                         ...row,
-                        [field]: field === "earnings" ? parseFloat(value.toString()) || 0 : value,
+                        [field]: field === "earnings" || field === "principal"
+                            ? parseFloat(value.toString()) || 0
+                            : value,
                     }
                     : row
             ),
@@ -256,7 +260,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                                     key={row.id}
                                     className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-lg"
                                 >
-                                    <div className="col-span-3">
+                                    <div className="col-span-2">
                                         <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                                         <input
                                             type="date"
@@ -266,7 +270,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
                                         />
                                     </div>
-                                    <div className="col-span-3">
+                                    <div className="col-span-2">
                                         <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
                                         <input
                                             type="date"
@@ -274,6 +278,17 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                                             onChange={(e) => updateEarningRow(row.id, "endDate", e.target.value)}
                                             disabled={isFormDisabled}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Principal</label>
+                                        <input
+                                            type="number"
+                                            value={row.principal || formData.principal}
+                                            onChange={(e) => updateEarningRow(row.id, "principal", e.target.value)}
+                                            disabled={isFormDisabled}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            placeholder="Principal"
                                         />
                                     </div>
                                     <div className="col-span-3">
