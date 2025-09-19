@@ -261,8 +261,10 @@ const CryptoTrackerPage = () => {
         ? portfolio
         : portfolio.filter(investment => investment.status !== 'closed');
 
-    const totalInvested = filteredPortfolio.reduce((sum, i) => sum + i.amountPaid, 0);
-    const totalCurrentValue = filteredPortfolio.reduce((sum, i) => sum + (i.currentValue ?? 0), 0);
+    // calculate summary data
+    const openPositions = filteredPortfolio.filter(inv => inv.status === 'open');
+    const totalInvested = openPositions.reduce((sum, i) => sum + i.amountPaid, 0);
+    const totalCurrentValue = openPositions.reduce((sum, i) => sum + (i.currentValue ?? 0), 0);
     const totalProfitLoss = totalCurrentValue - totalInvested;
     const totalProfitLossPercentage = totalInvested > 0 ? (totalProfitLoss / totalInvested) * 100 : 0;
 
