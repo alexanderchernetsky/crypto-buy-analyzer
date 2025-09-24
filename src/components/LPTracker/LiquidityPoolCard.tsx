@@ -95,20 +95,20 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
 
     return (
         <div
-            className={`bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-8 transition-opacity ${
+            className={`bg-slate-800 rounded-xl border border-slate-700 p-6 mb-8 transition-opacity ${
                 formData.status === "closed" ? "opacity-75" : ""
             }`}
         >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-indigo-600" />
-                    Liquidity Pool Calculator
+                <h2 className="text-xl font-semibold text-slate-200 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                    Liquidity Pool Position
                 </h2>
                 {formData.status === "closed" && (
-                    <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full">
-            Closed
-          </span>
+                    <span className="px-3 py-1 bg-slate-600 text-slate-200 text-sm font-semibold rounded-md">
+                        Closed
+                    </span>
                 )}
             </div>
 
@@ -117,11 +117,11 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                 <div className="flex gap-4 mb-4">
                     {/* Status */}
                     <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
                         <select
                             value={formData.status}
                             onChange={(e) => handleInputChange("status", e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            className="w-full px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
                             disabled={areButtonsDisabled}
                         >
                             <option value="open">Open</option>
@@ -131,35 +131,34 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
 
                     {/* Pool Name */}
                     <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pool Name</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Pool Name</label>
                         <input
                             type="text"
                             value={formData.poolName}
                             onChange={(e) => handleInputChange("poolName", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            className="w-full px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
                         />
                     </div>
 
                     {/* Token Symbol */}
                     <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Token Symbol</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Token Symbol</label>
                         <input
                             type="text"
                             value={formData.tokenSymbol || ""}
                             onChange={(e) => handleInputChange("tokenSymbol", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            className="w-full px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
                             placeholder="e.g., ETH, SOL"
                             required
                         />
                     </div>
                 </div>
 
-
                 {/* Price Status & Range with Current Price Marker */}
                 <div className="flex flex-col gap-2 mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Price Range</label>
 
                     <div className="flex items-center gap-4">
                         {/* Min Price Input */}
@@ -168,15 +167,15 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             value={formData.rangeFrom}
                             onChange={(e) => handleInputChange("rangeFrom", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            className="w-20 px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
                             placeholder="Min"
                         />
 
                         {/* Range Bar */}
-                        <div className="flex-1 relative h-4 bg-gray-200 rounded-full">
+                        <div className="flex-1 relative h-4 bg-slate-700 rounded-full">
                             {/* Current Price Marker */}
                             <div
-                                className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-red-500 shadow`}
+                                className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-red-400 shadow`}
                                 style={{
                                     left: `${
                                         ((price - formData.rangeFrom) / (formData.rangeTo - formData.rangeFrom)) * 100
@@ -191,36 +190,34 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             value={formData.rangeTo}
                             onChange={(e) => handleInputChange("rangeTo", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            className="w-20 px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
                             placeholder="Max"
                         />
 
                         {/* Status Label */}
                         <span
-                            className={`px-3 py-1 text-sm font-medium rounded-full ${
+                            className={`px-3 py-1 text-sm font-semibold rounded-md ${
                                 price >= formData.rangeFrom && price <= formData.rangeTo
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-red-100 text-red-700"
+                                    ? "bg-emerald-600/20 text-emerald-400"
+                                    : "bg-red-600/20 text-red-400"
                             }`}
                         >
-            {price >= formData.rangeFrom && price <= formData.rangeTo
-                ? `Within range (${price})`
-                : `Outside range (${price})`}
-        </span>
+                            {price >= formData.rangeFrom && price <= formData.rangeTo
+                                ? `Within range (${price})`
+                                : `Outside range (${price})`}
+                        </span>
                     </div>
                 </div>
-
-
 
                 {/* Earning Rows */}
                 <div>
                     <div className="flex justify-between items-center mb-3">
-                        <label className="block text-sm font-medium text-gray-700">Earning Periods</label>
+                        <label className="block text-sm font-medium text-slate-300">Earning Periods</label>
                         <button
                             type="button"
                             onClick={addEarningRow}
                             disabled={isFormDisabled}
-                            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
+                            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 transition-all disabled:opacity-50"
                         >
                             <Plus className="w-4 h-4" />
                             Add Row
@@ -228,13 +225,13 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     </div>
 
                     {formData.earningRows.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-slate-400">
                             <p>No earning periods added yet.</p>
                             <button
                                 type="button"
                                 onClick={addEarningRow}
                                 disabled={isFormDisabled}
-                                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50"
+                                className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all disabled:opacity-50"
                             >
                                 Add First Period
                             </button>
@@ -244,56 +241,56 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             {formData.earningRows.map((row) => (
                                 <div
                                     key={row.id}
-                                    className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 rounded-lg"
+                                    className="grid grid-cols-12 gap-3 items-center p-3 bg-slate-700 rounded-lg"
                                 >
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Start Date</label>
                                         <input
                                             type="date"
                                             value={row.startDate}
                                             onChange={(e) => updateEarningRow(row.id, "startDate", e.target.value)}
                                             disabled={isFormDisabled}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">End Date</label>
                                         <input
                                             type="date"
                                             value={row.endDate}
                                             onChange={(e) => updateEarningRow(row.id, "endDate", e.target.value)}
                                             disabled={isFormDisabled}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Principal</label>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Principal</label>
                                         <input
                                             type="number"
                                             value={row.principal || 0}
                                             onChange={(e) => updateEarningRow(row.id, "principal", e.target.value)}
                                             disabled={isFormDisabled}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
                                             placeholder="Principal"
                                         />
                                     </div>
                                     <div className="col-span-3">
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Earnings</label>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Earnings</label>
                                         <input
                                             type="number"
                                             value={row.earnings}
                                             onChange={(e) => updateEarningRow(row.id, "earnings", e.target.value)}
                                             disabled={isFormDisabled}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">Gathered</label>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Gathered</label>
                                         <select
                                             value={row.gathered}
                                             onChange={(e) => updateEarningRow(row.id, "gathered", e.target.value)}
                                             disabled={isFormDisabled}
-                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                                            className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
                                         >
                                             <option value="no">No</option>
                                             <option value="yes">Yes</option>
@@ -304,7 +301,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                                             type="button"
                                             onClick={() => removeEarningRow(row.id)}
                                             disabled={isFormDisabled}
-                                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-all disabled:opacity-50"
+                                            className="p-1 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded transition-all disabled:opacity-50"
                                             title="Remove this row"
                                         >
                                             <X className="w-4 h-4" />
@@ -316,24 +313,25 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     )}
                 </div>
 
-
                 {/* Calculated Results */}
                 <div className="grid grid-cols-3 gap-4 mt-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Total Days</label>
-                        <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Total Days</label>
+                        <div className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 font-mono">
                             {calculations.days}
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Earning per day</label>
-                        <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Earning per day</label>
+                        <div className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 font-mono">
                             {formatCurrency(calculations.earningPerDay)}
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">APR</label>
-                        <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-medium">
+                        <label className="block text-sm font-medium text-slate-300 mb-2">APR</label>
+                        <div className={`w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg font-mono font-semibold ${
+                            calculations.apr >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        }`}>
                             {formatPercentage(calculations.apr)}
                         </div>
                     </div>
@@ -345,7 +343,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     <button
                         type="button"
                         onClick={() => setShowComments(!showComments)}
-                        className="cursor-pointer px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+                        className="cursor-pointer px-6 py-3 bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 transition disabled:opacity-50"
                     >
                         {showComments ? "Hide Comments" : "Show Comments"}
                     </button>
@@ -355,7 +353,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                         <button
                             onClick={handleSave}
                             disabled={areButtonsDisabled}
-                            className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
+                            className="cursor-pointer px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow hover:bg-emerald-700 transition disabled:opacity-50"
                         >
                             {isSaving ? "Saving..." : "Save Changes"}
                         </button>
@@ -363,7 +361,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                         <button
                             onClick={handleDelete}
                             disabled={areButtonsDisabled}
-                            className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
+                            className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded-lg transition-all disabled:opacity-50 border border-red-600/30 hover:border-red-500/50"
                         >
                             <Trash2 className="w-4 h-4" />
                             {isDeleting ? "Deleting..." : "Delete"}
@@ -374,13 +372,13 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                 {/* Comments Section */}
                 {showComments && (
                     <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">Comments</label>
                         <textarea
                             value={formData.comments || ""}
                             onChange={(e) => handleInputChange("comments", e.target.value)}
                             disabled={isFormDisabled}
-                            rows={2}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
+                            rows={3}
+                            className="w-full px-4 py-3 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400 resize-vertical"
                         />
                     </div>
                 )}
