@@ -31,7 +31,7 @@ const LiquidityPoolsPage: React.FC = () => {
     }, [filteredPools]);
 
     // -------- Summary Calculations --------
-    const summary = useMemo(() => calculatePoolsSummary(pools), [pools]);
+    const summary = useMemo(() => calculatePoolsSummary(pools, prices as CoinGeckoPriceResponse), [pools, prices]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6">

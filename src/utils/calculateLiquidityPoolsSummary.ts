@@ -1,5 +1,6 @@
 import {Pool} from "@/types/liquidity-pools";
 import {calculateLiquidityPoolMetricsWithValidation} from "@/utils/calculateLiquidityPoolMetrics";
+import {CoinGeckoPriceResponse} from "@/utils/api/fetchTokenPrices";
 
 export interface PoolsSummary {
     openPositionsCount: number;
@@ -14,7 +15,7 @@ export interface PoolsSummary {
  * Calculate portfolio summary for liquidity pools.
  * Excludes `principal` and earnings from rows with status === "gathered".
  */
-export function calculatePoolsSummary(pools: Pool[]): PoolsSummary {
+export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceResponse): PoolsSummary {
     const openPositions = pools.filter(p => p.status === "open");
     const closedPositions = pools.filter(p => p.status === "closed");
 
@@ -61,6 +62,13 @@ export function calculatePoolsSummary(pools: Pool[]): PoolsSummary {
 
     // Total earning per day for open positions
     const totalEarningPerDay = openPositions.reduce((sum, pool) => {
+        const currentPrice = prices[pool.tokenSymbol]?.usd ?? 0;
+        // if out of range - do NOT count is daily earnings
+        const isOutOfRange = currentPrice < pool.rangeFrom  || currentPrice > pool.rangeTo;
+        if (isOutOfRange) {
+            return sum;
+        }
+
         const metrics = calculateLiquidityPoolMetricsWithValidation({
             earningRows: pool.earningRows
         });
