@@ -18,43 +18,36 @@ interface CalculateMetricsParams {
 export const calculateLiquidityPoolMetrics = ({
                                                   earningRows,
                                               }: CalculateMetricsParams): PoolMetrics => {
-    // Return zero values if no earning rows exist
     if (earningRows.length === 0) {
-        return {
-            days: 0,
-            earningPerDay: 0,
-            apr: 0,
-        };
+        return { days: 0, earningPerDay: 0, apr: 0 };
     }
 
     let totalDays = 0;
     let totalEarnings = 0;
-    let totalPrincipal = 0;
+    let weightedReturnSum = 0;
+    let weightedBasis = 0;
 
-    // Calculate total days, earnings, and principal across all rows
     earningRows.forEach((row) => {
-        if (row.startDate && row.endDate) {
-            const start = new Date(row.startDate);
-            const end = new Date(row.endDate);
-            const timeDiff = end.getTime() - start.getTime();
-            const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-            totalDays += Math.max(0, days); // Ensure non-negative days
-        }
+        const start = new Date(row.startDate);
+        const end = new Date(row.endDate);
+        const days = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24)));
+        totalDays += days;
         totalEarnings += row.earnings;
-        totalPrincipal += row.principal;
+
+        if (row.principal > 0 && days > 0) {
+            const dailyReturn = row.earnings / (row.principal * days);
+            weightedReturnSum += dailyReturn * row.principal * days;
+            weightedBasis += row.principal * days;
+        }
     });
 
-    // Calculate metrics
     const earningPerDay = totalDays > 0 ? totalEarnings / totalDays : 0;
-    const dailyReturn = totalPrincipal > 0 ? earningPerDay / totalPrincipal : 0;
-    const apr = dailyReturn * 365 * 100; // Convert to percentage
+    const dailyReturn = weightedBasis > 0 ? weightedReturnSum / weightedBasis : 0;
+    const apr = dailyReturn * 365 * 100;
 
-    return {
-        days: totalDays,
-        earningPerDay,
-        apr,
-    };
+    return { days: totalDays, earningPerDay, apr };
 };
+
 
 /**
  * Utility function to validate earning row data
