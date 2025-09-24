@@ -11,6 +11,7 @@ type FormField = keyof FormData;
 type NumericField = "rangeFrom" | "rangeTo";
 
 const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({ initialData, price }) => {
+    const [showComments, setShowComments] = useState(false);
     const [formData, setFormData] = useState<FormData>(initialData);
     const [calculations, setCalculations] = useState<Calculations>({
         days: 0,
@@ -112,92 +113,102 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
             </div>
 
             <div className="space-y-4">
-                {/* Status */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                        value={formData.status}
-                        onChange={(e) => handleInputChange("status", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                        disabled={areButtonsDisabled}
-                    >
-                        <option value="open">Open</option>
-                        <option value="closed">Closed</option>
-                    </select>
-                </div>
+                {/* Status, Pool Name, Token Symbol in one line */}
+                <div className="flex gap-4 mb-4">
+                    {/* Status */}
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select
+                            value={formData.status}
+                            onChange={(e) => handleInputChange("status", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            disabled={areButtonsDisabled}
+                        >
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
 
-                {/* Pool Name */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Pool Name</label>
-                    <input
-                        type="text"
-                        value={formData.poolName}
-                        onChange={(e) => handleInputChange("poolName", e.target.value)}
-                        disabled={isFormDisabled}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                    />
-                </div>
+                    {/* Pool Name */}
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Pool Name</label>
+                        <input
+                            type="text"
+                            value={formData.poolName}
+                            onChange={(e) => handleInputChange("poolName", e.target.value)}
+                            disabled={isFormDisabled}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                        />
+                    </div>
 
-                {/* Token Symbol */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Token Symbol</label>
-                    <input
-                        type="text"
-                        value={formData.tokenSymbol || ""}
-                        onChange={(e) => handleInputChange("tokenSymbol", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                        placeholder="e.g., ethereum, solana, etc."
-                        disabled={isFormDisabled}
-                        required
-                    />
-                </div>
-
-                {/* Price Status */}
-                <div className="flex items-center gap-3 mb-4">
-                    <div
-                        className={`w-4 h-4 rounded-full transition-colors duration-300 ${
-                            price >= formData.rangeFrom && price <= formData.rangeTo
-                                ? "bg-green-500 shadow-md"
-                                : "bg-red-500 shadow-md"
-                        }`}
-                    ></div>
-                    <span
-                        className={`px-3 py-1 text-sm font-medium rounded-full transition-colors duration-300 ${
-                            price >= formData.rangeFrom && price <= formData.rangeTo
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                        }`}
-                    >
-        {price >= formData.rangeFrom && price <= formData.rangeTo
-            ? `Within range (${price})`
-            : `Outside range (${price})`}
-    </span>
+                    {/* Token Symbol */}
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Token Symbol</label>
+                        <input
+                            type="text"
+                            value={formData.tokenSymbol || ""}
+                            onChange={(e) => handleInputChange("tokenSymbol", e.target.value)}
+                            disabled={isFormDisabled}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            placeholder="e.g., ETH, SOL"
+                            required
+                        />
+                    </div>
                 </div>
 
 
-                {/* Price Range */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                    <div className="grid grid-cols-2 gap-4">
+                {/* Price Status & Range with Current Price Marker */}
+                <div className="flex flex-col gap-2 mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+
+                    <div className="flex items-center gap-4">
+                        {/* Min Price Input */}
                         <input
                             type="number"
                             value={formData.rangeFrom}
                             onChange={(e) => handleInputChange("rangeFrom", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                            placeholder="From"
+                            className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            placeholder="Min"
                         />
+
+                        {/* Range Bar */}
+                        <div className="flex-1 relative h-4 bg-gray-200 rounded-full">
+                            {/* Current Price Marker */}
+                            <div
+                                className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-red-500 shadow`}
+                                style={{
+                                    left: `${
+                                        ((price - formData.rangeFrom) / (formData.rangeTo - formData.rangeFrom)) * 100
+                                    }%`,
+                                }}
+                            ></div>
+                        </div>
+
+                        {/* Max Price Input */}
                         <input
                             type="number"
                             value={formData.rangeTo}
                             onChange={(e) => handleInputChange("rangeTo", e.target.value)}
                             disabled={isFormDisabled}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                            placeholder="To"
+                            className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                            placeholder="Max"
                         />
+
+                        {/* Status Label */}
+                        <span
+                            className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                price >= formData.rangeFrom && price <= formData.rangeTo
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-red-100 text-red-700"
+                            }`}
+                        >
+            {price >= formData.rangeFrom && price <= formData.rangeTo
+                ? `Within range (${price})`
+                : `Outside range (${price})`}
+        </span>
                     </div>
                 </div>
-
 
 
 
@@ -209,7 +220,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             type="button"
                             onClick={addEarningRow}
                             disabled={isFormDisabled}
-                            className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
+                            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all disabled:opacity-50"
                         >
                             <Plus className="w-4 h-4" />
                             Add Row
@@ -305,17 +316,6 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     )}
                 </div>
 
-                {/* Comments */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
-                    <textarea
-                        value={formData.comments || ""}
-                        onChange={(e) => handleInputChange("comments", e.target.value)}
-                        disabled={isFormDisabled}
-                        rows={2}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
-                    />
-                </div>
 
                 {/* Calculated Results */}
                 <div className="grid grid-cols-3 gap-4 mt-6">
@@ -339,25 +339,51 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     </div>
                 </div>
 
-                {/* Actions */}
+                {/* Footer Actions */}
                 <div className="flex justify-between items-center mt-6">
+                    {/* Left: Show Comments */}
                     <button
-                        onClick={handleSave}
-                        disabled={areButtonsDisabled}
-                        className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
+                        type="button"
+                        onClick={() => setShowComments(!showComments)}
+                        className="cursor-pointer px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
                     >
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {showComments ? "Hide Comments" : "Show Comments"}
                     </button>
 
-                    <button
-                        onClick={handleDelete}
-                        disabled={areButtonsDisabled}
-                        className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        {isDeleting ? "Deleting..." : "Delete"}
-                    </button>
+                    {/* Right: Save & Delete */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleSave}
+                            disabled={areButtonsDisabled}
+                            className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition disabled:opacity-50"
+                        >
+                            {isSaving ? "Saving..." : "Save Changes"}
+                        </button>
+
+                        <button
+                            onClick={handleDelete}
+                            disabled={areButtonsDisabled}
+                            className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50 border border-red-200 hover:border-red-300"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {isDeleting ? "Deleting..." : "Delete"}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Comments Section */}
+                {showComments && (
+                    <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+                        <textarea
+                            value={formData.comments || ""}
+                            onChange={(e) => handleInputChange("comments", e.target.value)}
+                            disabled={isFormDisabled}
+                            rows={2}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-100 resize-vertical"
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

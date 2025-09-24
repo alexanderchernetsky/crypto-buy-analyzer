@@ -105,7 +105,7 @@ const LiquidityPoolsPage: React.FC = () => {
                 </div>
 
                 {/* Pool Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
                     {sortedPools.length === 0 ? (
                         <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                             <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
