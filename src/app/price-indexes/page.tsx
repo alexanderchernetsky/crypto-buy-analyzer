@@ -321,6 +321,46 @@ const CryptoBuyAnalyzer: React.FC = () => {
             </div>
           </div>
 
+            {/* Legend Section */}
+            <div className="grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 mt-6">
+                <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
+                    <div className="w-4 h-4 mt-1 rounded-sm bg-emerald-600" />
+                    <div>
+                        <div className="text-sm font-semibold text-slate-100">Strong Buy</div>
+                        <p className="text-xs text-slate-400">
+                            Price is in the lower 10% of its range.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
+                    <div className="w-4 h-4 mt-1 rounded-sm bg-lime-500" />
+                    <div>
+                        <div className="text-sm font-semibold text-slate-100">Buy</div>
+                        <p className="text-xs text-slate-400">
+                            Price is in the lower 40% of its range.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
+                    <div className="w-4 h-4 mt-1 rounded-sm bg-yellow-500" />
+                    <div>
+                        <div className="text-sm font-semibold text-slate-100">Caution</div>
+                        <p className="text-xs text-slate-400">
+                            Price is mid-range: 40-60% of its range.
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
+                    <div className="w-4 h-4 mt-1 rounded-sm bg-red-600" />
+                    <div>
+                        <div className="text-sm font-semibold text-slate-100">Avoid</div>
+                        <p className="text-xs text-slate-400">
+                            Price is high: above 60% of its range.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
           {/* Add Investment Form */}
           {showAddForm && (
               <TokenForm
@@ -459,46 +499,6 @@ const CryptoBuyAnalyzer: React.FC = () => {
               )}
               </tbody>
             </table>
-          </div>
-
-          {/* Legend Section */}
-          <div className="grid auto-cols-fr grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 mt-6">
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-emerald-600" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Strong Buy</div>
-                <p className="text-xs text-slate-400">
-                  Price is in the lower 10% of its range.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-lime-500" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Buy</div>
-                <p className="text-xs text-slate-400">
-                  Price is in the lower 40% of its range.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-yellow-500" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Caution</div>
-                <p className="text-xs text-slate-400">
-                  Price is mid-range: 40-60% of its range.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-lg border border-slate-600 bg-slate-700 px-4 py-3">
-              <div className="w-4 h-4 mt-1 rounded-sm bg-red-600" />
-              <div>
-                <div className="text-sm font-semibold text-slate-100">Avoid</div>
-                <p className="text-xs text-slate-400">
-                  Price is high: above 60% of its range.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
