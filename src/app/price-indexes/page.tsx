@@ -11,6 +11,7 @@ import {
   useRemoveTokenFromBuyAnalyzer,
   useUpdateTokenInBuyAnalyzer
 } from '@/react-query/useCryptoBuyAnalyzer';
+import fetchPriceRanges from "@/gecko-terminal/fetchPriceRanges";
 
 interface TokenInputForm {
   tokenName: string;
@@ -54,7 +55,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
   const updateMutation = useUpdateTokenInBuyAnalyzer();
   const deleteMutation = useRemoveTokenFromBuyAnalyzer();
 
-  const [formData, setFormData] = useState<TokenInputForm>({
+    const [formData, setFormData] = useState<TokenInputForm>({
     tokenName: '',
     symbol: '',
     allTimeLow: '',
@@ -75,6 +76,10 @@ const CryptoBuyAnalyzer: React.FC = () => {
     oneMonthLow: '',
     oneMonthHigh: '',
   });
+
+    useEffect(() => {
+        fetchPriceRanges();
+    }, []);
 
   useEffect(() => {
     if (tokens.length > 0) {
