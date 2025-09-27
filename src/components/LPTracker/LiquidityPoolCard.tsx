@@ -161,15 +161,8 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     <label className="block text-sm font-medium text-slate-300 mb-1">Price Range</label>
 
                     <div className="flex items-center gap-4">
-                        {/* Min Price Input */}
-                        <input
-                            type="number"
-                            value={formData.rangeFrom}
-                            onChange={(e) => handleInputChange("rangeFrom", e.target.value)}
-                            disabled={isFormDisabled}
-                            className="w-20 px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
-                            placeholder="Min"
-                        />
+                        {/* Min Price */}
+                        <div className="text-slate-200">{formData.rangeFrom}</div>
 
                         {/* Range Bar */}
                         <div className="flex-1 relative h-4 bg-slate-700 rounded-full">
@@ -184,15 +177,8 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             ></div>
                         </div>
 
-                        {/* Max Price Input */}
-                        <input
-                            type="number"
-                            value={formData.rangeTo}
-                            onChange={(e) => handleInputChange("rangeTo", e.target.value)}
-                            disabled={isFormDisabled}
-                            className="w-20 px-3 py-2 border border-slate-700 bg-slate-900 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
-                            placeholder="Max"
-                        />
+                        {/* Max Price */}
+                        <div className="text-slate-200">{formData.rangeTo}</div>
 
                         {/* Status Label */}
                         <span
