@@ -23,6 +23,7 @@ export interface InvestmentFormData {
     status: string
     sold: string
     closePrice: string
+    closedAt?: string
     notes: string
 }
 
@@ -143,6 +144,7 @@ const CryptoTrackerPage = () => {
             status: investment.status || 'open',
             sold: investment.sold?.toString() || '',
             closePrice: investment.closePrice?.toString() || '',
+            closedAt: investment.closedAt,
             notes: investment.notes || '',
         });
         setEditingInvestment(investment);
@@ -190,6 +192,7 @@ const CryptoTrackerPage = () => {
                     profitLossPercentage,
                     dateAdded: formData.dateAdded || new Date().toLocaleDateString(),
                     lastUpdated: new Date().toLocaleTimeString(),
+                    closedAt: formData.closedAt,
                     status: formData.status || 'open',
                     notes: formData.notes || '',
                 };
@@ -229,6 +232,7 @@ const CryptoTrackerPage = () => {
                 dateAdded: '',
                 status: 'open',
                 closePrice: '',
+                closedAt: '',
                 notes: '',
             });
             setShowAddForm(false);
@@ -253,6 +257,24 @@ const CryptoTrackerPage = () => {
             alert('Failed to remove');
         }
     };
+
+    const handleAddNewInvestmentClick = () => {
+        setEditingInvestment(null); // reset edit mode
+        setFormData({
+            tokenName: '',
+            symbol: '',
+            quantity: '',
+            purchasePrice: '',
+            amountPaid: '',
+            dateAdded: '',
+            status: 'open',
+            sold: '',
+            closePrice: '',
+            closedAt: '',
+            notes: '',
+        }); // reset form
+        setShowAddForm(true);
+    }
 
     const portfolio = updatedInvestments.length ? updatedInvestments : investments;
 
@@ -323,7 +345,7 @@ const CryptoTrackerPage = () => {
                                 {showClosedPositions ? 'Hide' : 'Show'} Closed ({closedPositionsCount})
                             </button>
                             <button
-                                onClick={() => setShowAddForm(true)}
+                                onClick={handleAddNewInvestmentClick}
                                 className="cursor-pointer inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
                             >
                                 <Plus className="w-4 h-4" />

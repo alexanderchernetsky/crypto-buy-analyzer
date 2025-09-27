@@ -37,6 +37,7 @@ export const AddCryptoInvestmentForm: React.FC<AddCryptoInvestmentModalProps> = 
                 status: 'open',
                 sold: '',
                 closePrice: '',
+                closedAt: '',
                 notes: '',
             });
         }
@@ -64,11 +65,12 @@ export const AddCryptoInvestmentForm: React.FC<AddCryptoInvestmentModalProps> = 
                         {editingInvestment ? 'Edit Investment' : 'Add New Investment'}
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={handleCancel}
                         className="cursor-pointer p-2 hover:bg-slate-800 rounded-lg transition-colors"
                     >
                         <X className="w-6 h-6 text-slate-400 hover:text-white" />
                     </button>
+
                 </div>
 
                 {/* Modal Body */}
@@ -176,6 +178,16 @@ export const AddCryptoInvestmentForm: React.FC<AddCryptoInvestmentModalProps> = 
                                 value={formData.closePrice || ''}
                                 onChange={(e) => setFormData({ ...formData, closePrice: e.target.value })}
                                 placeholder="0.00"
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="block text-sm font-medium text-slate-300 mb-2">Closed At</label>
+                            <input
+                                type="date"
+                                value={formData.closedAt || ''}
+                                onChange={(e) => setFormData({ ...formData, closedAt: e.target.value })}
                                 className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                             />
                         </div>

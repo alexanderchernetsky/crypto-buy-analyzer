@@ -29,6 +29,7 @@ export type Investment = {
     currentValue: number;
     profitLossPercentage: number;
     profitLoss: number;
+    closedAt?: string;
     // Add more fields as needed
 };
 
@@ -75,7 +76,7 @@ export const useUpdateInvestment = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, ...updateData }: Partial<NewInvestment> & { id: string }) => {
+        mutationFn: ({ id, ...updateData }: Investment) => {
             const docRef = doc(db, 'crypto-investments', id);
             return updateDoc(docRef, updateData);
         },
