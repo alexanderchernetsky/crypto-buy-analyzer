@@ -9,6 +9,7 @@ export interface FormData {
     id: string;
     poolName: string;
     tokenSymbol: string;
+    entryPrice: number;
     rangeFrom: number;
     rangeTo: number;
     status: "open" | "closed";
@@ -30,6 +31,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
     const [formData, setFormData] = useState<NewPoolFormData>({
         poolName: "",
         tokenSymbol: "",
+        entryPrice: 0,
         rangeFrom: 0,
         rangeTo: 0,
         status: "open",
@@ -50,7 +52,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
         setFormData((prev) => ({
             ...prev,
             [field]:
-                ["rangeFrom", "rangeTo"].includes(field)
+                ["rangeFrom", "rangeTo", "entryPrice"].includes(field) // ✅ include entryPrice
                     ? parseFloat(value) || 0
                     : value,
         }));
@@ -106,6 +108,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
         setFormData({
             poolName: "",
             tokenSymbol: "",
+            entryPrice: 0, // ✅ reset on submit
             rangeFrom: 0,
             rangeTo: 0,
             status: "open",
@@ -194,6 +197,22 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
                             value={formData.tokenSymbol || ""}
                             onChange={(e) => handleChange("tokenSymbol", e.target.value)}
                             placeholder="e.g., ETH, SOL"
+                            required
+                            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                    </div>
+
+                    {/* Entry Price ✅ NEW FIELD */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                            Entry Price
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={formData.entryPrice}
+                            onChange={(e) => handleChange("entryPrice", e.target.value)}
+                            placeholder="e.g., 1500.50"
                             required
                             className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />

@@ -8,7 +8,7 @@ import { formatPercentage } from "@/utils/formatPercentage";
 import {Calculations, EarningRow} from "@/types/liquidity-pools";
 
 type FormField = keyof FormData;
-type NumericField = "rangeFrom" | "rangeTo";
+type NumericField = "rangeFrom" | "rangeTo" | "entryPrice";
 
 const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({ initialData, price }) => {
     const [showComments, setShowComments] = useState(false);
@@ -30,7 +30,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
     }, [formData]);
 
     const isNumericField = (field: FormField): field is NumericField => {
-        return ["rangeFrom", "rangeTo"].includes(field as NumericField);
+        return ["rangeFrom", "rangeTo", "entryPrice"].includes(field as NumericField);
     };
 
     const handleInputChange = (field: FormField, value: string): void => {
@@ -156,7 +156,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                     </div>
                 </div>
 
-                {/* Price Status & Range with Current Price Marker */}
+                {/* Price Status & Range with Current Price and Entry Price Markers */}
                 <div className="flex flex-col gap-2 mb-4">
                     <label className="block text-sm font-medium text-slate-300 mb-1">Price Range</label>
 
@@ -168,13 +168,27 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                         <div className="flex-1 relative h-4 bg-slate-700 rounded-full">
                             {/* Current Price Marker */}
                             <div
-                                className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-red-400 shadow`}
+                                className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-red-400 shadow z-10`}
                                 style={{
-                                    left: `${
+                                    left: `${Math.max(0, Math.min(100,
                                         ((price - formData.rangeFrom) / (formData.rangeTo - formData.rangeFrom)) * 100
-                                    }%`,
+                                    ))}%`,
                                 }}
+                                title={`Current Price: ${price}`}
                             ></div>
+
+                            {/* Entry Price Marker */}
+                            {formData.entryPrice && formData.entryPrice > 0 && (
+                                <div
+                                    className={`absolute top-0 -translate-x-1/2 h-4 w-1.5 rounded bg-blue-400 shadow z-10`}
+                                    style={{
+                                        left: `${Math.max(0, Math.min(100,
+                                            ((formData.entryPrice - formData.rangeFrom) / (formData.rangeTo - formData.rangeFrom)) * 100
+                                        ))}%`,
+                                    }}
+                                    title={`Entry Price: ${formData.entryPrice}`}
+                                ></div>
+                            )}
                         </div>
 
                         {/* Max Price */}
@@ -189,9 +203,23 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData, price: number }> = ({
                             }`}
                         >
                             {price >= formData.rangeFrom && price <= formData.rangeTo
-                                ? `Within range (${price})`
-                                : `Outside range (${price})`}
+                                ? `Within range`
+                                : `Outside range`}
                         </span>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-red-400 rounded"></div>
+                            <span>Current Price ({price})</span>
+                        </div>
+                        {formData.entryPrice && formData.entryPrice > 0 && (
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-blue-400 rounded"></div>
+                                <span>Entry Price ({formData.entryPrice})</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
