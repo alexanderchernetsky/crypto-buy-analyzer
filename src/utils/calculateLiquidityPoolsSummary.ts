@@ -21,14 +21,10 @@ export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceRespo
 
     const openPositionsCount = openPositions.length;
 
-    // ✅ Exclude gathered rows
     const totalInvested = openPositions.reduce((sum, pool) => {
-        const poolPrincipal = pool.earningRows.reduce((rowSum, row) => {
-            if (row.gathered === "no") {
-                return rowSum + (row.principal || 0);
-            }
-            return rowSum;
-        }, 0);
+        const length = pool.earningRows.length;
+        const lastRow = pool.earningRows[length - 1];
+        const poolPrincipal = lastRow.principal;
         return sum + poolPrincipal;
     }, 0);
 

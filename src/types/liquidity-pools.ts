@@ -2,6 +2,7 @@
 export type Pool = {
     id: string;
     poolName: string;
+    entryPrice: number;
     rangeFrom: number;
     rangeTo: number;
     status: 'open' | 'closed';
