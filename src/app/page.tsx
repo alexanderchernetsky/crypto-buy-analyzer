@@ -301,7 +301,7 @@ const CryptoTrackerPage = () => {
                             <button
                                 onClick={updatePrices}
                                 disabled={loading || investments.length === 0}
-                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
                                     ${loading || investments.length === 0 ? 'bg-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
                                 `}
                             >
@@ -313,7 +313,7 @@ const CryptoTrackerPage = () => {
                             <button
                                 onClick={() => setShowClosedPositions(!showClosedPositions)}
                                 disabled={closedPositionsCount === 0}
-                                className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
+                                className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
                                     ${showClosedPositions
                                     ? 'bg-blue-600 hover:bg-blue-700'
                                     : 'bg-slate-600 hover:bg-slate-700'
@@ -323,8 +323,8 @@ const CryptoTrackerPage = () => {
                                 {showClosedPositions ? 'Hide' : 'Show'} Closed ({closedPositionsCount})
                             </button>
                             <button
-                                onClick={() => setShowAddForm(!showAddForm)}
-                                className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
+                                onClick={() => setShowAddForm(true)}
+                                className="cursor-pointer inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
                             >
                                 <Plus className="w-4 h-4" />
                                 Add Investment
@@ -344,17 +344,16 @@ const CryptoTrackerPage = () => {
                 </div>
 
                 {/* Add Investment Form */}
-                {showAddForm && (
-                    <AddCryptoInvestmentForm
-                        editingInvestment={editingInvestment}
-                        formData={formData}
-                        setFormData={setFormData}
-                        loading={loading}
-                        setEditingInvestment={setEditingInvestment}
-                        handleSubmit={handleSubmit}
-                        setShowAddForm={setShowAddForm}
-                    />
-                )}
+                <AddCryptoInvestmentForm
+                    isOpen={showAddForm}
+                    onClose={() => setShowAddForm(false)}
+                    editingInvestment={editingInvestment}
+                    setEditingInvestment={setEditingInvestment}
+                    formData={formData}
+                    setFormData={setFormData}
+                    loading={loading}
+                    handleSubmit={handleSubmit}
+                />
 
                 {/* Investments Table */}
                 <div className="bg-slate-800 rounded-xl border border-slate-700 mt-6 overflow-x-auto">
@@ -499,14 +498,14 @@ const CryptoTrackerPage = () => {
                                             <button
                                                 onClick={() => handleEdit(investment)}
                                                 title="Edit"
-                                                className="text-blue-500 hover:text-blue-400 p-1 rounded hover:bg-slate-600 transition"
+                                                className="cursor-pointer text-blue-500 hover:text-blue-400 p-1 rounded hover:bg-slate-600 transition"
                                             >
                                                 <Pencil className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleRemove(investment.id)}
                                                 title="Remove"
-                                                className="text-red-500 hover:text-red-400 p-1 rounded hover:bg-slate-600 transition"
+                                                className="cursor-pointer text-red-500 hover:text-red-400 p-1 rounded hover:bg-slate-600 transition"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
