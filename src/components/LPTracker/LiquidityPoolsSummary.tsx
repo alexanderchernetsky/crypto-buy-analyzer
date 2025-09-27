@@ -26,25 +26,31 @@ export const LiquidityPoolsSummary = ({
         },
         {
             label: "Total Invested",
-            value: `$${totalInvested.toFixed(2)}`,
+            value: `$${totalInvested.toFixed(1)}`,
             color: "text-slate-200",
             showIcon: false,
         },
         {
             label: "Profit/Loss",
-            value: `$${totalProfitLoss.toFixed(2)}`,
+            value: `$${totalProfitLoss.toFixed(1)}`,
             color: totalProfitLoss >= 0 ? positiveColor : negativeColor,
             showIcon: true,
         },
         {
             label: "Realised P/L",
-            value: `$${realisedProfitLoss.toFixed(2)}`,
+            value: `$${realisedProfitLoss.toFixed(1)}`,
             color: realisedProfitLoss >= 0 ? positiveColor : negativeColor,
             showIcon: true,
         },
         {
             label: "Daily Earning",
-            value: `$${totalEarningPerDay.toFixed(2)}`,
+            value: `$${totalEarningPerDay.toFixed(1)}`,
+            color: totalEarningPerDay >= 0 ? positiveColor : negativeColor,
+            showIcon: true,
+        },
+        {
+            label: "Estimated Yield Per Month",
+            value: `$${(totalEarningPerDay*30).toFixed(1)}`,
             color: totalEarningPerDay >= 0 ? positiveColor : negativeColor,
             showIcon: true,
         },
@@ -55,16 +61,16 @@ export const LiquidityPoolsSummary = ({
             {summaryItems.map(({ label, value, color, showIcon }, idx) => (
                 <div
                     key={idx}
-                    className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-lg p-5 border border-slate-700"
+                    className="bg-white/10 rounded-md p-4 border border-white/20 backdrop-blur-md"
                 >
-                    <div className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">{label}</div>
-                    <div className={`text-2xl font-bold flex items-center gap-2 ${color}`}>
+                    <div className="text-slate-300 text-sm mb-1">{label}</div>
+                    <div className={`text-xl font-bold flex items-center gap-1 ${color}`}>
                         {showIcon &&
                             (color === positiveColor ? (
-                                <TrendingUp className="w-5 h-5" />
-                            ) : (
-                                <TrendingDown className="w-5 h-5" />
-                            ))}
+                                <TrendingUp className="w-4 h-4" />
+                            ) : color === negativeColor ? (
+                                <TrendingDown className="w-4 h-4" />
+                            ) : null)}
                         {value}
                     </div>
                 </div>
