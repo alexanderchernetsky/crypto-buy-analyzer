@@ -21,7 +21,7 @@ export default function RootLayout({
                 <Menu />
 
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-y-auto lg:pl-0 pt-20 lg:pt-0">
+                <main className="flex-1 overflow-y-auto lg:pl-80 lg:pt-0">
                     <div className="min-h-full">
                         {children}
                     </div>
