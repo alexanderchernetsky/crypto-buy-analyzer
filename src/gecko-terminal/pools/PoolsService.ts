@@ -20,7 +20,7 @@ export default class PoolsService {
 	}
 
 	async ohlcv(params: OhlcvParams, options?: OhlcvOptions) {
-		const url = await this.#fetcher.url(`/networks/solana/pools/${params.poolKey}/ohlcv/${params.timeframe}`);
+		const url = await this.#fetcher.url(`networks/${params.network}/pools/${params.poolKey}/ohlcv/${params.timeframe}`);
 
 		if (typeof options?.aggregate === 'number') {
 			url.searchParams.set('aggregate', options.aggregate.toString());

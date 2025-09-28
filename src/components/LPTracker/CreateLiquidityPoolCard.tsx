@@ -157,66 +157,72 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({
 
                 {/* Modal Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* Status */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Status
-                        </label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => handleChange("status", e.target.value)}
-                            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        >
-                            <option value="open">Open</option>
-                            <option value="closed">Closed</option>
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Status */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Status
+                            </label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => handleChange("status", e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="open">Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+
+                        {/* Pool Name */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Pool Name
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.poolName}
+                                onChange={(e) => handleChange("poolName", e.target.value)}
+                                placeholder="LP1 - Orca SOL/USDC"
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
                     </div>
 
-                    {/* Pool Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Pool Name
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.poolName}
-                            onChange={(e) => handleChange("poolName", e.target.value)}
-                            placeholder="LP1 - Orca SOL/USDC"
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Token Symbol */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Token Symbol (Coin Gecko ID)
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.tokenSymbol || ""}
+                                onChange={(e) => handleChange("tokenSymbol", e.target.value)}
+                                placeholder="e.g., ethereum, solana"
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
+
+                        {/* Entry Price */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Entry Price
+                            </label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={formData.entryPrice}
+                                onChange={(e) => handleChange("entryPrice", e.target.value)}
+                                placeholder="e.g., 1500.50"
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
                     </div>
 
-                    {/* Token Symbol */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Token Symbol
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.tokenSymbol || ""}
-                            onChange={(e) => handleChange("tokenSymbol", e.target.value)}
-                            placeholder="e.g., ETH, SOL"
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        />
-                    </div>
-
-                    {/* Entry Price ✅ NEW FIELD */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                            Entry Price
-                        </label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={formData.entryPrice}
-                            onChange={(e) => handleChange("entryPrice", e.target.value)}
-                            placeholder="e.g., 1500.50"
-                            required
-                            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        />
-                    </div>
 
                     {/* Price Range */}
                     <div>
