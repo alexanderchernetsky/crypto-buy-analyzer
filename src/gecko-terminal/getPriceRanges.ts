@@ -5,20 +5,20 @@ interface PriceRange {
     max: number;
 }
 
-interface Ranges {
+export interface Ranges {
     oneMonth: PriceRange | null;
-    oneYear: PriceRange | null;
-    allTime: PriceRange | null;
+    sixMonth: PriceRange | null;
 }
 
 function getPriceRanges(data: OHLCVEntry[]): Ranges {
+    // data only up to 6 month ago (limitation from gecko terminal API)
     if (!data || data.length === 0) {
-        return { oneMonth: null, oneYear: null, allTime: null };
+        return { oneMonth: null, sixMonth: null };
     }
 
     const latestTimestamp = data[0][0]; // newest timestamp from the API
     const monthAgo = latestTimestamp - 30 * 24 * 60 * 60;
-    const yearAgo = latestTimestamp - 365 * 24 * 60 * 60;
+    const sixMonthAgo = latestTimestamp - 182 * 24 * 60 * 60;
 
     const filterByRange = (start: number) =>
         data.filter(([timestamp]) => timestamp >= start);
@@ -36,8 +36,7 @@ function getPriceRanges(data: OHLCVEntry[]): Ranges {
 
     return {
         oneMonth: calcRange(filterByRange(monthAgo)),
-        oneYear: calcRange(filterByRange(yearAgo)),
-        allTime: calcRange(data),
+        sixMonth: calcRange(filterByRange(sixMonthAgo)),
     };
 }
 

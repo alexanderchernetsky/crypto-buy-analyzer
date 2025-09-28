@@ -1,5 +1,5 @@
 import geckoterminal from "@/gecko-terminal/index";
-import getPriceRanges, {OHLCVEntry} from "@/gecko-terminal/getPriceRanges";
+import getPriceRanges, {OHLCVEntry, Ranges} from "@/gecko-terminal/getPriceRanges";
 
 export type Timeframe = 'day' | 'hour' | 'minute';
 
@@ -22,37 +22,74 @@ const aggregate = {
 
 
 // https://www.geckoterminal.com/dex-api
-// todo: extend to include all tokens I'm interested in
-// todo: get all supported networks from /networks
 const pools = {
+    // todo: I couldn't find any pools for these tokens, so I'm leaving them commented out
+    // wormhole: {
+    //     poolKey: '',
+    //     network: '',
+    // },
+    jupiter: {
+        poolKey: 'BhQEFZCRnWKQ21LEt4DUby7fKynfmLVJcNjfHNqjEF61',
+        network: 'solana',
+    },
+    // toncoin: {
+    //     poolKey: 'EQA-X_yo3fzzbDbJ_0bzFWKqtRuZFIRa1sJsveZJ1YpViO3r',
+    //     network: 'ton',
+    // },
+    chainlink: {
+        poolKey: '0xac5a2c404ebba22a869998089ac7893ff4e1f0a7',
+        network: 'eth',
+    },
+    morpho: {
+        poolKey: '0x2043b296ffc6b2d3bf4a3f3167d2afb3b0fbdbee',
+        network: 'base',
+    },
+    uniswap: {
+        poolKey: '0x3470447f3cecffac709d3e783a307790b0208d60',
+        network: 'eth',
+    },
+    // bitcoin: {
+    //   poolKey: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
+    //   network: 'arbitrum',
+    // },
     solana: {
         poolKey: 'BVRbyLjjfSBcoyiYFuxbgKYnWuiFaF9CSXEa5vdSZ9Hh',
         network: 'solana',
     },
-    uniswap: {
-      poolKey: '0x3470447f3cecffac709d3e783a307790b0208d60',
-      network: 'eth',
-    },
 }
 
-async function fetchPriceRanges() {
-    // const meteoraSolUsdcPool = 'BVRbyLjjfSBcoyiYFuxbgKYnWuiFaF9CSXEa5vdSZ9Hh';
-    const orcaSolUsdcPool = 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE';
-    const raydiumSolUsdcPool = '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2';
-
+async function fetchPriceRange(poolName: string, poolData: {poolKey: string, network: string }): Promise<Ranges | undefined> {
     const timeframe: Timeframe =  'day';
     const aggregateValue = aggregate.day;
 
-    const response = await geckoterminal.pools.ohlcv({ poolKey: pools.uniswap.poolKey, network: pools.uniswap.network, timeframe }, { aggregate: aggregateValue, limit: 1000, includeEmptyIntervals: true });
-    console.log('response', response);
-    const ohlcvList: OHLCVEntry[] = response.data.attributes.ohlcv_list;
-    const ranges = getPriceRanges(ohlcvList);
+    try {
+        const response = await geckoterminal.pools.ohlcv(
+            { poolKey: poolData.poolKey, network: poolData.network, timeframe },
+            { aggregate: aggregateValue, limit: 1000, includeEmptyIntervals: true }
+        );
 
-    console.log("1M:", ranges.oneMonth);
-    console.log("1Y:", ranges.oneYear);
-    console.log("All:", ranges.allTime); // todo: this value is NOT correct
+        const ohlcvList: OHLCVEntry[] = response.data.attributes.ohlcv_list;
+        const ranges = getPriceRanges(ohlcvList);
 
-    return ranges;
+        console.log(`Fetched ranges for ${poolName}:`, ranges);
+        return ranges;
+    } catch (error) {
+        console.error(`Failed to fetch ranges for ${poolName}:`, error);
+    }
+}
+
+async function fetchPriceRanges() {
+    const results: Record<string, Ranges> = {};
+
+    for (const [poolName, poolData] of Object.entries(pools)) {
+        const range = await fetchPriceRange(poolName, poolData);
+
+        if (range) {
+            results[poolName] = range;
+        }
+    }
+
+    return results;
 }
 
 export default fetchPriceRanges;

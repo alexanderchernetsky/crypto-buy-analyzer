@@ -2,6 +2,7 @@ import type Fetcher from '../Fetcher';
 import { type OhlcvOptions, type OhlcvParams, OhlcvResponse } from './schemas/Ohlcv';
 import { type PoolInfoOptions, type PoolInfoParams, PoolInfoResponse } from './schemas/PoolInfo';
 import { type PoolTradesOptions, type PoolTradesParams, PoolTradesResponse } from './schemas/PoolTrades';
+import {NetworksResponse} from "@/gecko-terminal/networks/schema/NetworksResponse";
 
 export default class PoolsService {
 	readonly #fetcher: Fetcher;
@@ -48,4 +49,12 @@ export default class PoolsService {
 			...options,
 		});
 	}
+
+    async networks() {
+        const url = await this.#fetcher.url(`/networks`);
+
+        return this.#fetcher.call(url, {
+            schema: NetworksResponse,
+        });
+    }
 }
