@@ -1,6 +1,6 @@
 'use client'
 import React, { useMemo, useState } from 'react';
-import { Calculator, Plus, X, Eye, EyeOff, DollarSign, Trash2 } from 'lucide-react';
+import { Calculator, Plus, X, Eye, EyeOff } from 'lucide-react';
 import LiquidityPoolsSummary from "@/components/LPTracker/LiquidityPoolsSummary";
 import LiquidityPoolCard from "@/components/LPTracker/LiquidityPoolCard";
 import AddLiquidityPoolCard from "@/components/LPTracker/CreateLiquidityPoolCard";

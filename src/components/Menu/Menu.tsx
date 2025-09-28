@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Calculator, Menu, X, TrendingUp, BarChart3 } from 'lucide-react';
@@ -13,12 +13,11 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
     { href: '/', label: 'Investments', icon: BarChart3, description: 'Overview of crypto investments' },
-    { href: '/lp-tracker', label: 'Liquidity Pools', icon: Calculator, description: 'Track LP positions' },
+    { href: '/liquidity-pools', label: 'Liquidity Pools', icon: Calculator, description: 'Track LP positions' },
     { href: '/price-indexes', label: 'Price Indexes', icon: TrendingUp, description: 'Check price indexes' },
 ];
 
 const AppMenu: React.FC = () => {
-    const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
 
     const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
