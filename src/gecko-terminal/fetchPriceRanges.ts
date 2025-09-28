@@ -28,7 +28,7 @@ const pools = {
     //     poolKey: '',
     //     network: '',
     // },
-    jupiter: {
+    ['jupiter-exchange-solana']: {
         poolKey: 'BhQEFZCRnWKQ21LEt4DUby7fKynfmLVJcNjfHNqjEF61',
         network: 'solana',
     },
