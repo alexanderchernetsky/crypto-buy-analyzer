@@ -1,6 +1,6 @@
-import {Pool} from "@/types/liquidity-pools";
-import {calculateLiquidityPoolMetricsWithValidation} from "@/utils/calculateLiquidityPoolMetrics";
-import {CoinGeckoPriceResponse} from "@/utils/api/fetchTokenPrices";
+import { Pool } from "@/types/liquidity-pools";
+import { calculateLiquidityPoolMetricsWithValidation } from "@/utils/calculateLiquidityPoolMetrics";
+import { CoinGeckoPriceResponse } from "@/utils/api/fetchTokenPrices";
 
 export interface PoolsSummary {
     openPositionsCount: number;
@@ -8,8 +8,9 @@ export interface PoolsSummary {
     totalProfitLoss: number;
     realisedProfitLoss: number;
     totalEarningPerDay: number;
+    inRangeCount: number;
+    outOfRangeCount: number;
 }
-
 
 /**
  * Calculate portfolio summary for liquidity pools.
@@ -56,11 +57,23 @@ export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceRespo
 
     const realisedProfitLoss = realisedProfitLossClosed + realisedProfitLossOpen;
 
+    // Track in-range and out-of-range counts
+    let inRangeCount = 0;
+    let outOfRangeCount = 0;
+
     // Total earning per day for open positions
     const totalEarningPerDay = openPositions.reduce((sum, pool) => {
         const currentPrice = prices[pool.tokenSymbol]?.usd ?? 0;
-        // if out of range - do NOT count is daily earnings
-        const isOutOfRange = currentPrice < pool.rangeFrom  || currentPrice > pool.rangeTo;
+        const isOutOfRange = currentPrice < pool.rangeFrom || currentPrice > pool.rangeTo;
+
+        // Count ranges
+        if (isOutOfRange) {
+            outOfRangeCount++;
+        } else {
+            inRangeCount++;
+        }
+
+        // Only count daily earnings if in range
         if (isOutOfRange) {
             return sum;
         }
@@ -78,5 +91,7 @@ export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceRespo
         totalProfitLoss,
         realisedProfitLoss,
         totalEarningPerDay,
+        inRangeCount,
+        outOfRangeCount,
     };
 }
