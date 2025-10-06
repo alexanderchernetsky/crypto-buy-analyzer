@@ -29,14 +29,6 @@ export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceRespo
         return sum + poolPrincipal;
     }, 0);
 
-    const totalProfitLoss = openPositions.reduce((sum, pool) => {
-        const poolEarnings = pool.earningRows.reduce(
-            (rowSum, row) => rowSum + row.earnings,
-            0
-        );
-        return sum + poolEarnings;
-    }, 0);
-
     const realisedProfitLossClosed = closedPositions.reduce((sum, pool) => {
         const poolEarnings = pool.earningRows.reduce(
             (rowSum, row) => rowSum + row.earnings,
@@ -56,6 +48,14 @@ export function calculatePoolsSummary(pools: Pool[], prices: CoinGeckoPriceRespo
     }, 0);
 
     const realisedProfitLoss = realisedProfitLossClosed + realisedProfitLossOpen;
+
+    const totalProfitLoss = openPositions.reduce((sum, pool) => {
+        const poolEarnings = pool.earningRows.reduce(
+            (rowSum, row) => rowSum + row.earnings,
+            0
+        );
+        return sum + poolEarnings;
+    }, 0) - realisedProfitLoss; // we don't count realised P/L in total profit loss
 
     // Track in-range and out-of-range counts
     let inRangeCount = 0;
