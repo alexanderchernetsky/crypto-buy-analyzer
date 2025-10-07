@@ -2,7 +2,7 @@ import type Fetcher from '../Fetcher';
 import { type OhlcvOptions, type OhlcvParams, OhlcvResponse } from './schemas/Ohlcv';
 import { type PoolInfoOptions, type PoolInfoParams, PoolInfoResponse } from './schemas/PoolInfo';
 import { type PoolTradesOptions, type PoolTradesParams, PoolTradesResponse } from './schemas/PoolTrades';
-import {NetworksResponse} from "@/gecko-terminal/networks/schema/NetworksResponse";
+import { NetworksResponse } from '@/gecko-terminal/networks/schema/NetworksResponse';
 
 export default class PoolsService {
 	readonly #fetcher: Fetcher;
@@ -27,9 +27,9 @@ export default class PoolsService {
 			url.searchParams.set('aggregate', options.aggregate.toString());
 		}
 
-        if (typeof options?.limit === 'number') {
-            url.searchParams.set('limit', options.limit.toString());
-        }
+		if (typeof options?.limit === 'number') {
+			url.searchParams.set('limit', options.limit.toString());
+		}
 
 		if (typeof options?.includeEmptyIntervals === 'boolean') {
 			url.searchParams.set('include_empty_intervals', options.includeEmptyIntervals.toString());
@@ -50,11 +50,11 @@ export default class PoolsService {
 		});
 	}
 
-    async networks() {
-        const url = await this.#fetcher.url(`/networks`);
+	async networks() {
+		const url = await this.#fetcher.url(`/networks`);
 
-        return this.#fetcher.call(url, {
-            schema: NetworksResponse,
-        });
-    }
+		return this.#fetcher.call(url, {
+			schema: NetworksResponse,
+		});
+	}
 }

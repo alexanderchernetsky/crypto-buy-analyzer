@@ -1,7 +1,7 @@
 import z from 'zod';
 
 export type OhlcvParams = {
-    network: string;
+	network: string;
 	poolKey: string;
 	timeframe: 'day' | 'hour' | 'minute';
 };

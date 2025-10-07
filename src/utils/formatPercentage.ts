@@ -5,5 +5,5 @@
  * @returns Formatted percentage string
  */
 export const formatPercentage = (value: number, decimals: number = 2): string => {
-    return `${value.toFixed(decimals)}%`;
+	return `${value.toFixed(decimals)}%`;
 };

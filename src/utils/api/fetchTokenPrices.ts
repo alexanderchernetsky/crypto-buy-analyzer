@@ -1,7 +1,7 @@
 export interface CoinGeckoPriceResponse {
-    [symbol: string]: {
-        usd: number;
-    };
+	[symbol: string]: {
+		usd: number;
+	};
 }
 
 /**
@@ -9,18 +9,14 @@ export interface CoinGeckoPriceResponse {
  * @param symbols - An array of CoinGecko IDs (e.g., ['bitcoin', 'ethereum'])
  * @returns A mapping of symbol -> { usd: number }
  */
-export const fetchPrices = async (
-    symbols: string[]
-): Promise<CoinGeckoPriceResponse> => {
-    const query = symbols.map((s) => s.toLowerCase()).join(',');
-    const res = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${query}&vs_currencies=usd`
-    );
+export const fetchPrices = async (symbols: string[]): Promise<CoinGeckoPriceResponse> => {
+	const query = symbols.map((s) => s.toLowerCase()).join(',');
+	const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${query}&vs_currencies=usd`);
 
-    if (!res.ok) {
-        throw new Error('Failed to fetch prices');
-    }
+	if (!res.ok) {
+		throw new Error('Failed to fetch prices');
+	}
 
-    const data: CoinGeckoPriceResponse = await res.json();
-    return data;
+	const data: CoinGeckoPriceResponse = await res.json();
+	return data;
 };
