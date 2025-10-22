@@ -42,13 +42,13 @@ export const LiquidityPoolsSummary = ({
 			showIcon: false,
 		},
 		{
-			label: 'Profit/Loss',
+			label: 'Unclaimed',
 			value: `$${totalProfitLoss.toFixed(1)}`,
 			color: totalProfitLoss >= 0 ? positiveColor : negativeColor,
 			showIcon: true,
 		},
 		{
-			label: 'Realised P/L',
+			label: 'Claimed',
 			value: `$${realisedProfitLoss.toFixed(1)}`,
 			color: realisedProfitLoss >= 0 ? positiveColor : negativeColor,
 			showIcon: true,
