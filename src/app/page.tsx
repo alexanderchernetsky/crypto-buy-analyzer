@@ -1,12 +1,12 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Filter } from 'lucide-react';
 import {
 	useInvestments,
 	useAddInvestment,
 	useRemoveInvestment,
 	useUpdateInvestment,
-	Investment,
+	type Investment,
 } from '@/react-query/useInvestments';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { CryptoPortfolioSummary } from '@/components/CryptoTracker/CryptoPortfolioSummary';
@@ -57,15 +57,7 @@ const CryptoTrackerPage = () => {
 	const [sortByPL, setSortByPL] = useState(false);
 	const [sortPLPercentageAsc, setSortPLPercentageAsc] = useState(true);
 
-	useEffect(() => {
-		if (!investments || investments.length === 0) return;
-		updatePrices();
-
-		const interval = setInterval(updatePrices, 60000); // every 60 seconds
-		return () => clearInterval(interval);
-	}, [investments]);
-
-	const updatePrices = async () => {
+	const updatePrices = useCallback(async () => {
 		if (!investments || investments.length === 0) return;
 		setLoading(true);
 
@@ -130,7 +122,15 @@ const CryptoTrackerPage = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [investments]);
+
+    useEffect(() => {
+        if (!investments || investments.length === 0) return;
+        updatePrices();
+
+        const interval = setInterval(updatePrices, 60000); // every 60 seconds
+        return () => clearInterval(interval);
+    }, [investments, updatePrices]);
 
 	// EDIT
 	const handleEdit = (investment: Investment) => {
@@ -144,7 +144,7 @@ const CryptoTrackerPage = () => {
 			status: investment.status || 'open',
 			sold: investment.sold?.toString() || '',
 			closePrice: investment.closePrice?.toString() || '',
-			closedAt: investment.closedAt,
+			closedAt: investment.closedAt || '',
 			notes: investment.notes || '',
 		});
 		setEditingInvestment(investment);
@@ -253,7 +253,7 @@ const CryptoTrackerPage = () => {
 
 		try {
 			await removeMutation.mutateAsync(id);
-		} catch (err) {
+		} catch {
 			alert('Failed to remove');
 		}
 	};
@@ -323,6 +323,7 @@ const CryptoTrackerPage = () => {
 						</h1>
 						<div className="flex flex-wrap gap-2">
 							<button
+                                type="button"
 								onClick={updatePrices}
 								disabled={loading || investments.length === 0}
 								className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
@@ -333,6 +334,7 @@ const CryptoTrackerPage = () => {
 								Refresh Prices
 							</button>
 							<button
+                                type="button"
 								onClick={() => setShowClosedPositions(!showClosedPositions)}
 								disabled={closedPositionsCount === 0}
 								className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
@@ -346,6 +348,7 @@ const CryptoTrackerPage = () => {
 								{showClosedPositions ? 'Hide' : 'Show'} Closed ({closedPositionsCount})
 							</button>
 							<button
+                                type="button"
 								onClick={handleAddNewInvestmentClick}
 								className="cursor-pointer inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
 							>
@@ -516,6 +519,7 @@ const CryptoTrackerPage = () => {
 										<td className="px-4 py-3 text-center">
 											<div className="flex justify-center gap-2">
 												<button
+                                                    type="button"
 													onClick={() => handleEdit(investment)}
 													title="Edit"
 													className="cursor-pointer text-blue-500 hover:text-blue-400 p-1 rounded hover:bg-slate-600 transition"
@@ -523,6 +527,7 @@ const CryptoTrackerPage = () => {
 													<Pencil className="w-4 h-4" />
 												</button>
 												<button
+                                                    type="button"
 													onClick={() => handleRemove(investment.id)}
 													title="Remove"
 													className="cursor-pointer text-red-500 hover:text-red-400 p-1 rounded hover:bg-slate-600 transition"
