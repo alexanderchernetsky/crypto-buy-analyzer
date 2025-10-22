@@ -1,19 +1,20 @@
 'use client';
-import React, { useMemo, useState } from 'react';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 import { Calculator, Plus, X, Eye, EyeOff } from 'lucide-react';
 import LiquidityPoolsSummary from '@/components/LPTracker/LiquidityPoolsSummary';
 import LiquidityPoolCard from '@/components/LPTracker/LiquidityPoolCard';
 import AddLiquidityPoolCard from '@/components/LPTracker/CreateLiquidityPoolCard';
 import { usePools } from '@/react-query/useLiquidityPools';
-import { useCoinGeckoTokenPrices } from '@/react-query/useCoinGeckoTokenPrices';
-import { CoinGeckoPriceResponse } from '@/utils/api/fetchTokenPrices';
+import type { CoinGeckoPriceResponse } from '@/utils/api/fetchTokenPrices';
 import { calculatePoolsSummary } from '@/utils/calculateLiquidityPoolsSummary';
+import {usePrices} from "@/react-query/usePrices";
 
 const LiquidityPoolsPage: React.FC = () => {
 	const { data: pools = [] } = usePools();
 	const symbols = pools.map((pool) => pool.tokenSymbol);
 	const uniqueSymbols = [...new Set(symbols)];
-	const { data: prices = [] } = useCoinGeckoTokenPrices(uniqueSymbols);
+	const { data: prices = [] } = usePrices(uniqueSymbols);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [showClosed, setShowClosed] = useState(false);
 
@@ -42,6 +43,7 @@ const LiquidityPoolsPage: React.FC = () => {
 						</h1>
 						<div className="flex flex-wrap gap-2">
 							<button
+                                type="button"
 								onClick={() => setShowClosed((prev) => !prev)}
 								className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
                                     ${
@@ -52,6 +54,7 @@ const LiquidityPoolsPage: React.FC = () => {
 								{showClosed ? 'Hide Closed' : 'Show Closed'}
 							</button>
 							<button
+                                type="button"
 								onClick={() => setShowCreateForm(!showCreateForm)}
 								className="cursor-pointer inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
 							>
