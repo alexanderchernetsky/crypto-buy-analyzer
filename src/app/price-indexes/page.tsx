@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import { TrendingUp, RefreshCw, Plus, Trash2, Edit, Zap } from 'lucide-react';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { calculateOneYearPriceIndex, calculatePriceIndex } from '@/utils/calculatePriceIndex';
@@ -12,6 +12,8 @@ import {
 	useUpdateTokenInBuyAnalyzer,
 } from '@/react-query/useCryptoBuyAnalyzer';
 import { usePriceRanges } from '@/react-query/usePriceRanges';
+import {Skeleton} from "@/components/shared/Skeleton";
+import {usePrices} from "@/react-query/usePrices";
 
 interface TokenInputForm {
 	tokenName: string;
@@ -58,7 +60,16 @@ const CryptoBuyAnalyzer: React.FC = () => {
 	const addMutation = useAddTokenToBuyAnalyzer();
 	const updateMutation = useUpdateTokenInBuyAnalyzer();
 	const deleteMutation = useRemoveTokenFromBuyAnalyzer();
-	const { data: priceRanges } = usePriceRanges();
+	const { data: priceRanges, isLoading: isPriceRangesLoading } = usePriceRanges(); // fetch from Gecko terminal
+    // Memoize tokensWithData so it doesn’t change every render
+    const tokensWithData = React.useMemo(
+        () => tokens.filter((inv) => inv.allTimeLow && inv.allTimeHigh && inv.symbol),
+        [tokens]
+    );
+
+    const symbols = tokensWithData.map((inv) => inv.symbol);
+    // 🔁 Polling price data
+    const { data: prices = {} } = usePrices(symbols);
 
 	const [formData, setFormData] = useState<TokenInputForm>({
 		tokenName: '',
@@ -82,110 +93,94 @@ const CryptoBuyAnalyzer: React.FC = () => {
 		oneMonthHigh: '',
 	});
 
-	useEffect(() => {
-		if (tokens.length > 0) {
-			updateAnalysis();
-		}
-	}, [tokens, priceRanges]);
+    const updateAnalysis = useCallback(async () => {
+        if (tokensWithData.length === 0) return;
+        setLoading(true);
 
-	const updateAnalysis = async () => {
-		if (tokens.length === 0) return;
-		setLoading(true);
+        try {
+            const analyzed = tokensWithData.map((inv) => {
+                const currentPrice = prices[inv.symbol]?.usd ?? 0;
+                const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
+                const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
 
-		try {
-			const tokensWithData = tokens.filter((inv) => inv.allTimeLow && inv.allTimeHigh && inv.symbol);
+                let oneMonthPriceIndex = null;
+                if (priceRanges?.[inv.symbol]?.oneMonth) {
+                    const oneMonthData = priceRanges[inv.symbol].oneMonth;
+                    oneMonthPriceIndex = calculatePriceIndex(
+                        currentPrice,
+                        oneMonthData?.min as number,
+                        oneMonthData?.max as number,
+                    );
+                } else if (inv.oneMonthLow && inv.oneMonthHigh) {
+                    oneMonthPriceIndex = calculatePriceIndex(currentPrice, Number(inv.oneMonthLow), Number(inv.oneMonthHigh));
+                }
 
-			if (tokensWithData.length === 0) {
-				setAnalyzedTokens([]);
-				return;
-			}
+                let sixMonthPriceIndex = null;
+                if (priceRanges?.[inv.symbol]?.sixMonth) {
+                    const sixMonthData = priceRanges[inv.symbol].sixMonth;
+                    sixMonthPriceIndex = calculatePriceIndex(
+                        currentPrice,
+                        sixMonthData?.min as number,
+                        sixMonthData?.max as number,
+                    );
+                }
 
-			const uniqueSymbols = [...new Set(tokensWithData.map((inv) => inv.symbol))];
-			const priceData = await fetchPrices(uniqueSymbols);
+                const piBuySignal = getBuySignal(priceIndex);
+                const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
+                const oneMonthPiBuySignal = getBuySignal(oneMonthPriceIndex);
+                const sixMonthPiBuySignal = getBuySignal(sixMonthPriceIndex);
 
-			const analyzed = tokensWithData.map((inv) => {
-				const currentPrice = priceData[inv.symbol]?.usd ?? 0;
-				const priceIndex = calculatePriceIndex(currentPrice, inv.allTimeLow!, inv.allTimeHigh!);
-				const oneYearPriceIndex = calculateOneYearPriceIndex(currentPrice, inv.oneYearLow!, inv.oneYearHigh!);
-				// Calculate 1-month price index - prioritize priceRanges data, fallback to database data
-				let oneMonthPriceIndex = null;
-				if (priceRanges && priceRanges[inv.symbol]?.oneMonth) {
-					// Use real-time data from priceRanges
-					const oneMonthData = priceRanges[inv.symbol].oneMonth;
-					oneMonthPriceIndex = calculatePriceIndex(
-						currentPrice,
-						oneMonthData?.min as number,
-						oneMonthData?.max as number,
-					);
-				} else if (inv.oneMonthLow && inv.oneMonthHigh) {
-					// Fallback to database data
-					oneMonthPriceIndex = calculatePriceIndex(currentPrice, Number(inv.oneMonthLow), Number(inv.oneMonthHigh));
-				}
+                return {
+                    id: inv.id,
+                    tokenName: inv.tokenName,
+                    symbol: inv.symbol,
+                    currentPrice,
+                    priceIndex,
+                    oneYearPriceIndex,
+                    oneMonthPriceIndex,
+                    sixMonthPriceIndex,
+                    piBuySignal,
+                    oneYearPiBuySignal,
+                    oneMonthPiBuySignal,
+                    sixMonthPiBuySignal,
+                    lastUpdated: new Date().toLocaleTimeString(),
+                    allTimeLow: inv.allTimeLow,
+                    allTimeHigh: inv.allTimeHigh,
+                    oneYearLow: inv.oneYearLow,
+                    oneYearHigh: inv.oneYearHigh,
+                    oneMonthLow: inv.oneMonthLow || 0,
+                    oneMonthHigh: inv.oneMonthHigh || 0,
+                    oneMonthFromAPI: !!(priceRanges?.[inv.symbol]?.oneMonth),
+                    sixMonthFromAPI: !!(priceRanges?.[inv.symbol]?.sixMonth),
+                };
+            });
 
-				// Calculate 6-month price index using priceRanges data
-				let sixMonthPriceIndex = null;
-				if (priceRanges && priceRanges[inv.symbol]?.sixMonth) {
-					const sixMonthData = priceRanges[inv.symbol].sixMonth;
-					sixMonthPriceIndex = calculatePriceIndex(
-						currentPrice,
-						sixMonthData?.min as number,
-						sixMonthData?.max as number,
-					);
-				}
+            const uniqueAnalyzed = analyzed.filter((token, index, self) => index === self.findIndex((t) => t.symbol === token.symbol));
 
-				const piBuySignal = getBuySignal(priceIndex);
-				const oneYearPiBuySignal = getBuySignal(oneYearPriceIndex);
-				const oneMonthPiBuySignal = getBuySignal(oneMonthPriceIndex);
-				const sixMonthPiBuySignal = getBuySignal(sixMonthPriceIndex);
+            const signalPriority: Record<string, number> = {
+                'STRONG BUY': 1,
+                'BUY': 2,
+                'CAUTION': 3,
+                'AVOID': 4,
+                'UNKNOWN': 5,
+            };
 
-				return {
-					id: inv.id,
-					tokenName: inv.tokenName,
-					symbol: inv.symbol,
-					currentPrice,
-					priceIndex,
-					oneYearPriceIndex,
-					oneMonthPriceIndex,
-					sixMonthPriceIndex,
-					piBuySignal,
-					oneYearPiBuySignal,
-					oneMonthPiBuySignal,
-					sixMonthPiBuySignal,
-					lastUpdated: new Date().toLocaleTimeString(),
-					allTimeLow: inv.allTimeLow,
-					allTimeHigh: inv.allTimeHigh,
-					oneYearLow: inv.oneYearLow,
-					oneYearHigh: inv.oneYearHigh,
-					oneMonthLow: inv.oneMonthLow || 0,
-					oneMonthHigh: inv.oneMonthHigh || 0,
-					// Add flags to track data source
-					oneMonthFromAPI: !!(priceRanges && priceRanges[inv.symbol]?.oneMonth),
-					sixMonthFromAPI: !!(priceRanges && priceRanges[inv.symbol]?.sixMonth),
-				};
-			}) as TokenData[];
+            uniqueAnalyzed.sort((a, b) => signalPriority[a.piBuySignal.signal] - signalPriority[b.piBuySignal.signal]);
 
-			const uniqueAnalyzed = analyzed.filter(
-				(token, index, self) => index === self.findIndex((t) => t.symbol === token.symbol),
-			);
+            setAnalyzedTokens(uniqueAnalyzed);
+        } catch (err) {
+            console.error(err);
+            alert('Error updating analysis');
+        } finally {
+            setLoading(false);
+        }
+    }, [tokensWithData, priceRanges, prices]);
 
-			const signalPriority: Record<string, number> = {
-				'STRONG BUY': 1,
-				BUY: 2,
-				CAUTION: 3,
-				AVOID: 4,
-				UNKNOWN: 5,
-			};
-
-			uniqueAnalyzed.sort((a, b) => signalPriority[a.piBuySignal.signal] - signalPriority[b.piBuySignal.signal]);
-
-			setAnalyzedTokens(uniqueAnalyzed);
-		} catch (err) {
-			console.error(err);
-			alert('Error updating analysis');
-		} finally {
-			setLoading(false);
-		}
-	};
+    useEffect(() => {
+        if (tokensWithData.length > 0) {
+            updateAnalysis();
+        }
+    }, [tokensWithData, updateAnalysis]);
 
 	const handleSubmit = async () => {
 		const { tokenName, symbol, allTimeLow, allTimeHigh, oneYearLow, oneYearHigh, oneMonthLow, oneMonthHigh } = formData;
@@ -356,6 +351,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 						</h1>
 						<div className="flex gap-2">
 							<button
+                                type="button"
 								onClick={updateAnalysis}
 								disabled={loading || tokens.length === 0}
 								className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
@@ -366,6 +362,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 								Refresh Analysis
 							</button>
 							<button
+                                type="button"
 								onClick={() => {
 									setShowAddForm(!showAddForm);
 									setShowEditForm(false); // Close edit form if open
@@ -411,7 +408,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Add Investment Form */}
+				{/* Add Token Form */}
 				{showAddForm && (
 					<TokenForm
 						mode="add"
@@ -423,7 +420,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 					/>
 				)}
 
-				{/* Edit Investment Form */}
+				{/* Edit Token Form */}
 				{showEditForm && editingToken && (
 					<TokenForm
 						mode="edit"
@@ -470,7 +467,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 									<td colSpan={7} className="px-4 py-6 text-center text-sm text-slate-400">
 										{tokens.length === 0
 											? 'No tokens found. Add tokens data to see buy analysis.'
-											: 'No tokens with sufficient price index data found. Please add All-time High/Low data to your tokens.'}
+											: 'No tokens with sufficient price index data found.'}
 									</td>
 								</tr>
 							) : (
@@ -519,31 +516,40 @@ const CryptoBuyAnalyzer: React.FC = () => {
 												'—'
 											)}
 										</td>
+                                        <td className="px-4 py-3 text-center">
+                                            {isPriceRangesLoading ? (
+                                                <div className="flex items-center justify-center">
+                                                    <Skeleton width={96} height={28} />
+                                                </div>
+                                            ) : token.sixMonthPiBuySignal ? (
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <div
+                                                        className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                                                        style={{
+                                                            color: token.sixMonthPiBuySignal.color,
+                                                            backgroundColor: `${token.sixMonthPiBuySignal.color}15`,
+                                                            border: `1px solid ${token.sixMonthPiBuySignal.color}30`,
+                                                        }}
+                                                        title={`${token.sixMonthPriceIndex !== null ? (Number(token.sixMonthPriceIndex) * 100).toFixed(1) : '—'}% - 6-Month range from Gecko Terminal API`}
+                                                    >
+                                                        {token.sixMonthPriceIndex !== null
+                                                            ? `${(token.sixMonthPriceIndex * 100).toFixed(1)}%`
+                                                            : '—'}{' '}
+                                                        {token.sixMonthPiBuySignal.text}
+                                                    </div>
+                                                    {token.sixMonthPriceIndex !== null && <Zap className="w-3 h-3 text-emerald-400" />}
+                                                </div>
+                                            ) : (
+                                                '—'
+                                            )}
+                                        </td>
 										<td className="px-4 py-3 text-center">
-											{token.sixMonthPiBuySignal ? (
-												<div className="flex items-center justify-center gap-1">
-													<div
-														className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
-														style={{
-															color: token.sixMonthPiBuySignal.color,
-															backgroundColor: `${token.sixMonthPiBuySignal.color}15`,
-															border: `1px solid ${token.sixMonthPiBuySignal.color}30`,
-														}}
-														title={`${token.sixMonthPriceIndex !== null ? (Number(token.sixMonthPriceIndex) * 100).toFixed(1) : '—'}% - 6-Month range from Gecko Terminal API`}
-													>
-														{token.sixMonthPriceIndex !== null
-															? `${(token.sixMonthPriceIndex * 100).toFixed(1)}%`
-															: '—'}{' '}
-														{token.sixMonthPiBuySignal.text}
-													</div>
-													{token.sixMonthPriceIndex !== null && <Zap className="w-3 h-3 text-emerald-400" />}
-												</div>
-											) : (
-												'—'
-											)}
-										</td>
-										<td className="px-4 py-3 text-center">
-											{token.oneMonthPiBuySignal ? (
+                                            {isPriceRangesLoading ? (
+                                                    <div className="flex items-center justify-center">
+                                                        <Skeleton width={100} height={28} />
+                                                    </div>
+                                                ) :
+                                            token.oneMonthPiBuySignal ? (
 												<div className="flex items-center justify-center gap-1">
 													<div
 														className="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
@@ -570,6 +576,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 										<td className="px-4 py-3 text-center">
 											<div className="flex items-center justify-center gap-2">
 												<button
+                                                    type="button"
 													onClick={() => handleEdit(token)}
 													className="text-blue-500 hover:text-blue-700 cursor-pointer"
 													title="Edit token"
@@ -577,6 +584,7 @@ const CryptoBuyAnalyzer: React.FC = () => {
 													<Edit className="w-4 h-4" />
 												</button>
 												<button
+                                                    type="button"
 													onClick={() => handleDelete(token.id)}
 													className="text-red-500 hover:text-red-700 cursor-pointer"
 													title="Delete token"

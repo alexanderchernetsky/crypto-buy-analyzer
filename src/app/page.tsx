@@ -1,138 +1,107 @@
 'use client';
-import React, {useCallback, useEffect, useState} from 'react';
-import { DollarSign, RefreshCw, Plus, Pencil, Trash2, Filter } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { DollarSign, Plus, Pencil, Trash2, Filter } from 'lucide-react';
 import {
-	useInvestments,
-	useAddInvestment,
-	useRemoveInvestment,
-	useUpdateInvestment,
-	type Investment,
+    useInvestments,
+    useAddInvestment,
+    useRemoveInvestment,
+    useUpdateInvestment,
+    type Investment,
 } from '@/react-query/useInvestments';
 import { fetchPrices } from '@/utils/api/fetchTokenPrices';
 import { CryptoPortfolioSummary } from '@/components/CryptoTracker/CryptoPortfolioSummary';
 import { AddCryptoInvestmentForm } from '@/components/CryptoTracker/AddCryptoInvestmentForm';
 import { processCryptoTrackerData } from '@/utils/processCryptoTrackerData';
+import { usePrices } from '@/react-query/usePrices';
 
 export interface InvestmentFormData {
-	tokenName: string;
-	symbol: string;
-	quantity: string;
-	purchasePrice: string;
-	amountPaid: string;
-	dateAdded: string;
-	status: string;
-	sold: string;
-	closePrice: string;
-	closedAt?: string;
-	notes: string;
+    tokenName: string;
+    symbol: string;
+    quantity: string;
+    purchasePrice: string;
+    amountPaid: string;
+    dateAdded: string;
+    status: string;
+    sold: string;
+    closePrice: string;
+    closedAt?: string;
+    notes: string;
 }
 
 const CryptoTrackerPage = () => {
-	const { data: investments = [] } = useInvestments();
-	const addMutation = useAddInvestment();
-	const removeMutation = useRemoveInvestment();
-	const updateMutation = useUpdateInvestment();
+    const { data: investments = [] } = useInvestments();
+    const addMutation = useAddInvestment();
+    const removeMutation = useRemoveInvestment();
+    const updateMutation = useUpdateInvestment();
 
-	const [showAddForm, setShowAddForm] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const [showClosedPositions, setShowClosedPositions] = useState(false);
-	const [formData, setFormData] = useState<InvestmentFormData>({
-		tokenName: '',
-		symbol: '',
-		quantity: '',
-		purchasePrice: '',
-		amountPaid: '',
-		dateAdded: '',
-		status: 'open',
-		sold: '',
-		closePrice: '',
-		notes: '',
-	});
+    // Separate open and closed investments
+    const openInvestments = investments.filter((inv) => inv.status !== 'closed');
+    const symbols = openInvestments.map((inv) => inv.symbol);
 
-	// edit
-	const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
-	const [updatedInvestments, setUpdatedInvestments] = useState<Investment[]>([]);
+    // 🔁 Polling price data
+    const { data: prices = {}, isLoading: isLoadingPrices } = usePrices(symbols);
 
-	// sorting
-	const [sortByPL, setSortByPL] = useState(false);
-	const [sortPLPercentageAsc, setSortPLPercentageAsc] = useState(true);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [showClosedPositions, setShowClosedPositions] = useState(false);
+    const [formData, setFormData] = useState<InvestmentFormData>({
+        tokenName: '',
+        symbol: '',
+        quantity: '',
+        purchasePrice: '',
+        amountPaid: '',
+        dateAdded: '',
+        status: 'open',
+        sold: '',
+        closePrice: '',
+        notes: '',
+    });
 
-	const updatePrices = useCallback(async () => {
-		if (!investments || investments.length === 0) return;
-		setLoading(true);
+    const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
+    const [updatedInvestments, setUpdatedInvestments] = useState<Investment[]>([]);
 
-		try {
-			// Filter out closed investments for price updates
-			const openInvestments = investments.filter((inv) => inv.status !== 'closed');
-			const closedInvestments = investments.filter((inv) => inv.status === 'closed');
+    const [sortByPL, setSortByPL] = useState(false);
+    const [sortPLPercentageAsc, setSortPLPercentageAsc] = useState(true);
 
-			let enriched: Investment[] = [];
-
-			// Only fetch prices for open investments
-			if (openInvestments.length > 0) {
-				const data = await fetchPrices(openInvestments.map((i) => i.symbol));
-
-				// Update open investments with new prices
-				const updatedOpenInvestments = openInvestments.map((inv) => {
-					const price = data[inv.symbol]?.usd ?? inv.currentPrice ?? 0;
-					const currentValue = inv.quantity * price;
-					const profitLoss = currentValue - inv.amountPaid;
-					const profitLossPercentage = (profitLoss / inv.amountPaid) * 100;
-
-					return {
-						...inv,
-						currentPrice: price,
-						currentValue,
-						profitLoss,
-						profitLossPercentage,
-						lastUpdated: new Date().toLocaleTimeString(),
-					};
-				});
-
-				enriched = [...updatedOpenInvestments];
-			}
-
-			// Keep closed investments with their existing values (no price updates)
-			const preservedClosedInvestments = closedInvestments.map((inv) => {
-				const closePrice = inv.closePrice ?? 0;
-				const quantity = inv.quantity ?? 0;
-				const amountPaid = inv.amountPaid ?? 0;
-
-				const currentValue = quantity * closePrice;
-				const profitLoss = currentValue - amountPaid;
-				const profitLossPercentage = (profitLoss / amountPaid) * 100;
-
-				return {
-					...inv,
-					currentPrice: closePrice, // For display consistency
-					currentValue: currentValue, // Fixed at sell time
-					profitLoss: profitLoss,
-					profitLossPercentage: profitLossPercentage,
-					// lastUpdated not needed
-				};
-			});
-
-			// Combine updated open investments with preserved closed investments
-			enriched = [...enriched, ...preservedClosedInvestments];
-
-			setUpdatedInvestments(enriched);
-		} catch (err) {
-			console.error(err);
-			alert('Error updating prices');
-		} finally {
-			setLoading(false);
-		}
-	}, [investments]);
-
+    /**
+     * 🔁 Automatically update investment values when prices are fetched
+     */
     useEffect(() => {
-        if (!investments || investments.length === 0) return;
-        updatePrices();
+        if (!prices || isLoadingPrices || investments.length === 0) return;
 
-        const interval = setInterval(updatePrices, 60000); // every 60 seconds
-        return () => clearInterval(interval);
-    }, [investments, updatePrices]);
+        // Compute open and closed once inside
+        const openInv = investments.filter((inv) => inv.status !== 'closed');
+        const closedInv = investments.filter((inv) => inv.status === 'closed');
 
-	// EDIT
+        // Update open investments with latest prices
+        const updatedOpen = openInv.map((inv) => {
+            const price = prices[inv.symbol]?.usd ?? 0;
+            const currentValue = inv.quantity * price;
+            const profitLoss = currentValue - inv.amountPaid;
+            const profitLossPercentage = inv.amountPaid > 0 ? (profitLoss / inv.amountPaid) * 100 : 0;
+
+            return {
+                ...inv,
+                currentPrice: price,
+                currentValue,
+                profitLoss,
+                profitLossPercentage,
+                lastUpdated: new Date().toLocaleTimeString(),
+            };
+        });
+
+        // Keep closed investments unchanged
+        const preservedClosed = closedInv.map((inv) => ({
+            ...inv,
+            currentPrice: inv.closePrice ?? 0,
+            currentValue: (inv.quantity ?? 0) * (inv.closePrice ?? 0),
+        }));
+
+        setUpdatedInvestments([...updatedOpen, ...preservedClosed]);
+    }, [investments, prices, isLoadingPrices]); // ✅ only run when prices change
+
+
+    // EDIT
 	const handleEdit = (investment: Investment) => {
 		setFormData({
 			tokenName: investment.tokenName,
@@ -322,17 +291,6 @@ const CryptoTrackerPage = () => {
 							Crypto Investment Tracker
 						</h1>
 						<div className="flex flex-wrap gap-2">
-							<button
-                                type="button"
-								onClick={updatePrices}
-								disabled={loading || investments.length === 0}
-								className={`cursor-pointer inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition
-                                    ${loading || investments.length === 0 ? 'bg-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}
-                                `}
-							>
-								<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-								Refresh Prices
-							</button>
 							<button
                                 type="button"
 								onClick={() => setShowClosedPositions(!showClosedPositions)}

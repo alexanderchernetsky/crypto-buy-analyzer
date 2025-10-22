@@ -6,21 +6,21 @@ import {
 	updateDoc,
 	doc,
 	onSnapshot,
-	DocumentData,
-	QueryDocumentSnapshot,
+	type DocumentData,
+	type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/database/firebase';
 
 export interface CryptoBuyToken {
-	id?: string; // Will be added when fetched
+	id: string;
 	tokenName: string;
 	symbol: string;
-	allTimeLow?: number;
-	allTimeHigh?: number;
-	oneYearLow?: number;
-	oneYearHigh?: number;
-	oneMonthLow?: number;
-	oneMonthHigh?: number;
+	allTimeLow: number;
+	allTimeHigh: number;
+	oneYearLow: number;
+	oneYearHigh: number;
+	oneMonthLow: number;
+	oneMonthHigh: number;
 }
 
 const investmentsRef = collection(db, 'crypto-buy-analyzer-tokens');
