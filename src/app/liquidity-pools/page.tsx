@@ -13,8 +13,7 @@ import {usePrices} from "@/react-query/usePrices";
 const LiquidityPoolsPage: React.FC = () => {
 	const { data: pools = [] } = usePools();
 	const symbols = pools.map((pool) => pool.tokenSymbol);
-	const uniqueSymbols = [...new Set(symbols)];
-	const { data: prices = [] } = usePrices(uniqueSymbols);
+	const { data: prices = [] } = usePrices(symbols);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [showClosed, setShowClosed] = useState(false);
 

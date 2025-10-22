@@ -8,6 +8,7 @@ export type Pool = {
 	status: 'open' | 'closed';
 	earningRows: EarningRow[];
 	tokenSymbol: string;
+    dex: string;
 };
 
 // Type for new Pool input (without id)

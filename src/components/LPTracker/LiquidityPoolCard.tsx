@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { DollarSign, Trash2, Plus, X } from 'lucide-react';
-import { useUpdatePool, useRemovePool } from '@/react-query/useLiquidityPools';
-import { FormData } from '@/components/LPTracker/CreateLiquidityPoolCard';
-import formatCurrency from '@/utils/formatCurrency';
+import { DollarSign, Plus, Trash2, X } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import type { FormData } from '@/components/LPTracker/CreateLiquidityPoolCard';
+import { useRemovePool, useUpdatePool } from '@/react-query/useLiquidityPools';
+import type { Calculations, EarningRow } from '@/types/liquidity-pools';
 import { calculateLiquidityPoolMetricsWithValidation } from '@/utils/calculateLiquidityPoolMetrics';
+import formatCurrency from '@/utils/formatCurrency';
 import { formatPercentage } from '@/utils/formatPercentage';
-import { Calculations, EarningRow } from '@/types/liquidity-pools';
 
 type FormField = keyof FormData;
 type NumericField = 'rangeFrom' | 'rangeTo' | 'entryPrice';
@@ -150,11 +151,25 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 							required
 						/>
 					</div>
+
+                    {/* DEX */}
+                    <div className="flex-1">
+                        <span className="block text-sm font-medium text-slate-300 mb-1">DEX</span>
+                        <input
+                            type="text"
+                            value={formData.dex || ''}
+                            onChange={(e) => handleInputChange('dex', e.target.value)}
+                            disabled={isFormDisabled}
+                            className="w-full px-3 py-2 border border-slate-600 bg-slate-900/80 text-slate-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-800 disabled:text-slate-400"
+                            placeholder="e.g. Orca, Meteora"
+                            required
+                        />
+                    </div>
 				</div>
 
 				{/* Price Range */}
 				<div className="flex flex-col gap-2 mb-4">
-					<label className="block text-sm font-medium text-slate-300 mb-1">Price Range</label>
+					<span className="block text-sm font-medium text-slate-300 mb-1">Price Range</span>
 
 					<div className="flex items-center gap-4">
 						<div className="text-slate-200">{formData.rangeFrom}</div>
@@ -218,7 +233,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 				{/* Earning Rows */}
 				<div>
 					<div className="flex justify-between items-center mb-3">
-						<label className="block text-sm font-medium text-slate-300">Earning Periods</label>
+						<span className="block text-sm font-medium text-slate-300">Earning Periods</span>
 						<button
 							type="button"
 							onClick={addEarningRow}
@@ -250,7 +265,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 									className="grid grid-cols-12 gap-3 items-center p-3 bg-slate-900/70 border border-slate-700 rounded-lg"
 								>
 									<div className="col-span-2">
-										<label className="block text-xs font-medium text-slate-400 mb-1">Start Date</label>
+										<span className="block text-xs font-medium text-slate-400 mb-1">Start Date</span>
 										<input
 											type="date"
 											value={row.startDate}
@@ -260,7 +275,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 										/>
 									</div>
 									<div className="col-span-2">
-										<label className="block text-xs font-medium text-slate-400 mb-1">End Date</label>
+										<span className="block text-xs font-medium text-slate-400 mb-1">End Date</span>
 										<input
 											type="date"
 											value={row.endDate}
@@ -270,7 +285,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 										/>
 									</div>
 									<div className="col-span-2">
-										<label className="block text-xs font-medium text-slate-400 mb-1">Principal</label>
+										<span className="block text-xs font-medium text-slate-400 mb-1">Principal</span>
 										<input
 											type="number"
 											value={row.principal || 0}
@@ -281,7 +296,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 										/>
 									</div>
 									<div className="col-span-3">
-										<label className="block text-xs font-medium text-slate-400 mb-1">Earnings</label>
+										<span className="block text-xs font-medium text-slate-400 mb-1">Earnings</span>
 										<input
 											type="number"
 											value={row.earnings}
@@ -291,7 +306,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 										/>
 									</div>
 									<div className="col-span-2">
-										<label className="block text-xs font-medium text-slate-400 mb-1">Gathered</label>
+										<span className="block text-xs font-medium text-slate-400 mb-1">Gathered</span>
 										<select
 											value={row.gathered}
 											onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}
@@ -322,19 +337,19 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 				{/* Calculated Results */}
 				<div className="grid grid-cols-3 gap-4 mt-6">
 					<div>
-						<label className="block text-sm font-medium text-slate-300 mb-2">Total Days</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">Total Days</span>
 						<div className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 font-mono">
 							{calculations.days}
 						</div>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-slate-300 mb-2">Earning per day</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">Earning per day</span>
 						<div className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 font-mono">
 							{formatCurrency(calculations.earningPerDay)}
 						</div>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-slate-300 mb-2">APR</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">APR</span>
 						<div
 							className={`w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg font-mono font-semibold ${
 								calculations.apr >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -357,6 +372,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 
 					<div className="flex gap-3">
 						<button
+                            type="button"
 							onClick={handleSave}
 							disabled={areButtonsDisabled}
 							className="cursor-pointer px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow hover:bg-emerald-700 transition disabled:opacity-50"
@@ -365,6 +381,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 						</button>
 
 						<button
+                            type="button"
 							onClick={handleDelete}
 							disabled={areButtonsDisabled}
 							className="cursor-pointer flex items-center gap-2 px-6 py-3 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded-lg transition-all disabled:opacity-50 border border-red-600/30 hover:border-red-500/50"
@@ -378,7 +395,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 				{/* Comments Section */}
 				{showComments && (
 					<div className="mt-6 p-4 bg-slate-900/80 border border-slate-700 rounded-lg">
-						<label className="block text-sm font-medium text-slate-300 mb-2">Comments</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">Comments</span>
 						<textarea
 							value={formData.comments}
 							onChange={(e) => handleInputChange('comments', e.target.value)}

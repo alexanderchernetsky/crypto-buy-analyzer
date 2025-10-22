@@ -1,5 +1,4 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
-import React from 'react';
 
 export const LiquidityPoolsSummary = ({
 	totalInvested,
@@ -69,8 +68,8 @@ export const LiquidityPoolsSummary = ({
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-			{summaryItems.map(({ label, value, color, showIcon }, idx) => (
-				<div key={idx} className="bg-white/10 rounded-md p-4 border border-white/20 backdrop-blur-md">
+			{summaryItems.map(({ label, value, color, showIcon }) => (
+				<div key={label} className="bg-white/10 rounded-md p-4 border border-white/20 backdrop-blur-md">
 					<div className="text-slate-300 text-sm mb-1">{label}</div>
 					<div className={`text-xl font-bold flex items-center gap-2 ${color}`}>
 						{showIcon &&

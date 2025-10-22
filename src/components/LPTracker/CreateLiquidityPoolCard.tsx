@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { DollarSign, X, Plus } from 'lucide-react';
+import { DollarSign, Plus, X } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
 import { useAddPool } from '@/react-query/useLiquidityPools';
-import { EarningRow } from '@/types/liquidity-pools';
+import type { EarningRow } from '@/types/liquidity-pools';
 
 export type NewPoolFormData = Omit<FormData, 'id'>;
 
@@ -15,6 +16,7 @@ export interface FormData {
 	status: 'open' | 'closed';
 	earningRows: EarningRow[];
 	comments?: string;
+    dex: string;
 }
 
 interface AddLiquidityPoolModalProps {
@@ -43,6 +45,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 			},
 		],
 		comments: '',
+        dex: '',
 	});
 
 	const handleChange = (field: keyof FormData, value: string) => {
@@ -112,6 +115,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 				},
 			],
 			comments: '',
+            dex: ''
 		});
 		onClose();
 	};
@@ -136,7 +140,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 						</div>
 						Create New Liquidity Pool Position
 					</h2>
-					<button onClick={onClose} className="cursor-pointer p-2 hover:bg-slate-800 rounded-lg transition-colors">
+					<button type="button" onClick={onClose} className="cursor-pointer p-2 hover:bg-slate-800 rounded-lg transition-colors">
 						<X className="w-6 h-6 text-slate-400 hover:text-white" />
 					</button>
 				</div>
@@ -146,7 +150,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 					<div className="grid grid-cols-2 gap-4">
 						{/* Status */}
 						<div>
-							<label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
+							<span className="block text-sm font-medium text-slate-300 mb-2">Status</span>
 							<select
 								value={formData.status}
 								onChange={(e) => handleChange('status', e.target.value)}
@@ -159,7 +163,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 
 						{/* Pool Name */}
 						<div>
-							<label className="block text-sm font-medium text-slate-300 mb-2">Pool Name</label>
+							<span className="block text-sm font-medium text-slate-300 mb-2">Pool Name</span>
 							<input
 								type="text"
 								value={formData.poolName}
@@ -169,12 +173,25 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 								className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
 							/>
 						</div>
+
+                        {/* DEX */}
+                        <div>
+                            <span className="block text-sm font-medium text-slate-300 mb-2">DEX</span>
+                            <input
+                                type="text"
+                                value={formData.dex}
+                                onChange={(e) => handleChange('dex', e.target.value)}
+                                placeholder="Orca"
+                                required
+                                className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
 						{/* Token Symbol */}
 						<div>
-							<label className="block text-sm font-medium text-slate-300 mb-2">Token Symbol (Coin Gecko ID)</label>
+							<span className="block text-sm font-medium text-slate-300 mb-2">Token Symbol (Coin Gecko ID)</span>
 							<input
 								type="text"
 								value={formData.tokenSymbol || ''}
@@ -187,7 +204,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 
 						{/* Entry Price */}
 						<div>
-							<label className="block text-sm font-medium text-slate-300 mb-2">Entry Price</label>
+							<span className="block text-sm font-medium text-slate-300 mb-2">Entry Price</span>
 							<input
 								type="number"
 								step="0.01"
@@ -202,7 +219,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 
 					{/* Price Range */}
 					<div>
-						<label className="block text-sm font-medium text-slate-300 mb-2">Price Range</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">Price Range</span>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<input
 								type="number"
@@ -228,7 +245,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 					{/* Earning Periods */}
 					<div>
 						<div className="flex justify-between items-center mb-3">
-							<label className="block text-sm font-medium text-slate-300">Earning Periods</label>
+							<span className="block text-sm font-medium text-slate-300">Earning Periods</span>
 							<button
 								type="button"
 								onClick={addEarningRow}
@@ -288,7 +305,7 @@ const AddLiquidityPoolModal: React.FC<AddLiquidityPoolModalProps> = ({ isOpen, o
 
 					{/* Comments */}
 					<div>
-						<label className="block text-sm font-medium text-slate-300 mb-2">Comments</label>
+						<span className="block text-sm font-medium text-slate-300 mb-2">Comments</span>
 						<textarea
 							value={formData.comments || ''}
 							onChange={(e) => handleChange('comments', e.target.value)}
