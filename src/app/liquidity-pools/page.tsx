@@ -1,5 +1,5 @@
 'use client';
-import type React from 'react';
+import React, {useEffect} from 'react';
 import { useMemo, useState } from 'react';
 import { Calculator, Plus, X, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import LiquidityPoolsSummary from '@/components/LPTracker/LiquidityPoolsSummary';
@@ -11,6 +11,7 @@ import { calculatePoolsSummary } from '@/utils/calculateLiquidityPoolsSummary';
 import {usePrices} from "@/react-query/usePrices";
 import {calculateLiquidityPoolMetricsWithValidation} from "@/utils/calculateLiquidityPoolMetrics";
 import type {PoolPosition} from "@/types/liquidity-pools";
+import {getPoolPositions} from "@/solana/meteora/getPoolPositions";
 
 const LiquidityPoolsPage: React.FC = () => {
 	const { data: pools = [] } = usePools();
@@ -46,8 +47,6 @@ const LiquidityPoolsPage: React.FC = () => {
         const uniqueDexes = Array.from(new Set(poolPositions.map(p => p.dex))).sort();
         return uniqueDexes;
     }, [poolPositions]);
-
-    console.log('poolPositions', poolPositions);
 
     // Filter by selected DEX and sorted
     const filteredByDex = useMemo(() => {

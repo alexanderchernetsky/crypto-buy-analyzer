@@ -12,8 +12,12 @@
 		"ci": "biome ci ."
 	},
 	"dependencies": {
+		"@meteora-ag/dlmm": "^1.7.5",
+		"@solana/kit": "^4.0.0",
+		"@solana/web3.js": "^1.98.4",
 		"@tanstack/react-query": "^5.83.0",
 		"firebase": "^12.0.0",
+		"helius-sdk": "^2.0.2",
 		"lucide-react": "^0.526.0",
 		"next": "15.4.4",
 		"react": "19.1.0",
