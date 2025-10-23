@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collection, addDoc, deleteDoc, doc, updateDoc, DocumentData, CollectionReference } from 'firebase/firestore';
+import { addDoc, type CollectionReference, collection, type DocumentData, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/database/firebase';
-import { getDocs } from 'firebase/firestore';
-import { NewPool, Pool } from '@/types/liquidity-pools';
+import type { NewPool, Pool } from '@/types/liquidity-pools';
 
 // Firestore collection reference
 const poolsRef: CollectionReference<DocumentData> = collection(db, 'liquidity-pools');

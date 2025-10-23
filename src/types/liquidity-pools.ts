@@ -28,3 +28,6 @@ export interface Calculations {
 	earningPerDay: number;
 	apr: number;
 }
+
+
+export type PoolPosition = Pool & { calculations: Calculations };

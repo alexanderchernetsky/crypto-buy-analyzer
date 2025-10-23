@@ -1,34 +1,21 @@
 import { DollarSign, Plus, Trash2, X } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { FormData } from '@/components/LPTracker/CreateLiquidityPoolCard';
 import { useRemovePool, useUpdatePool } from '@/react-query/useLiquidityPools';
-import type { Calculations, EarningRow } from '@/types/liquidity-pools';
-import { calculateLiquidityPoolMetricsWithValidation } from '@/utils/calculateLiquidityPoolMetrics';
+import type { EarningRow, PoolPosition} from '@/types/liquidity-pools';
 import formatCurrency from '@/utils/formatCurrency';
 import { formatPercentage } from '@/utils/formatPercentage';
 
 type FormField = keyof FormData;
 type NumericField = 'rangeFrom' | 'rangeTo' | 'entryPrice';
 
-const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({ initialData, price }) => {
+const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> = ({ initialData, price }) => {
 	const [showComments, setShowComments] = useState(false);
 	const [formData, setFormData] = useState<FormData>(initialData);
-	const [calculations, setCalculations] = useState<Calculations>({
-		days: 0,
-		earningPerDay: 0,
-		apr: 0,
-	});
 
 	const { mutate: updatePool, isPending: isSaving } = useUpdatePool();
 	const { mutate: removePool, isPending: isDeleting } = useRemovePool();
-
-	useEffect(() => {
-		const metrics = calculateLiquidityPoolMetricsWithValidation({
-			earningRows: formData.earningRows,
-		});
-		setCalculations(metrics);
-	}, [formData]);
 
 	const isNumericField = (field: FormField): field is NumericField => {
 		return ['rangeFrom', 'rangeTo', 'entryPrice'].includes(field as NumericField);
@@ -114,7 +101,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 				<div className="flex gap-4 mb-4">
 					{/* Status */}
 					<div className="flex-1">
-						<label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
+						<span className="block text-sm font-medium text-slate-300 mb-1">Status</span>
 						<select
 							value={formData.status}
 							onChange={(e) => handleInputChange('status', e.target.value)}
@@ -128,7 +115,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 
 					{/* Pool Name */}
 					<div className="flex-1">
-						<label className="block text-sm font-medium text-slate-300 mb-1">Pool Name</label>
+						<span className="block text-sm font-medium text-slate-300 mb-1">Pool Name</span>
 						<input
 							type="text"
 							value={formData.poolName}
@@ -140,7 +127,7 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 
 					{/* Token Symbol */}
 					<div className="flex-1">
-						<label className="block text-sm font-medium text-slate-300 mb-1">Token Symbol</label>
+						<span className="block text-sm font-medium text-slate-300 mb-1">Token Symbol</span>
 						<input
 							type="text"
 							value={formData.tokenSymbol || ''}
@@ -339,23 +326,23 @@ const LiquidityPoolCard: React.FC<{ initialData: FormData; price: number }> = ({
 					<div>
 						<span className="block text-sm font-medium text-slate-300 mb-2">Total Days</span>
 						<div className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 font-mono">
-							{calculations.days}
+							{initialData.calculations.days}
 						</div>
 					</div>
 					<div>
 						<span className="block text-sm font-medium text-slate-300 mb-2">Earning per day</span>
 						<div className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg text-slate-100 font-mono">
-							{formatCurrency(calculations.earningPerDay)}
+							{formatCurrency(initialData.calculations.earningPerDay)}
 						</div>
 					</div>
 					<div>
 						<span className="block text-sm font-medium text-slate-300 mb-2">APR</span>
 						<div
 							className={`w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-lg font-mono font-semibold ${
-								calculations.apr >= 0 ? 'text-emerald-400' : 'text-red-400'
+								initialData.calculations.apr >= 0 ? 'text-emerald-400' : 'text-red-400'
 							}`}
 						>
-							{formatPercentage(calculations.apr)}
+							{formatPercentage(initialData.calculations.apr)}
 						</div>
 					</div>
 				</div>
