@@ -17,7 +17,9 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
 	const { mutate: updatePool, isPending: isSaving } = useUpdatePool();
 	const { mutate: removePool, isPending: isDeleting } = useRemovePool();
 
-	const isNumericField = (field: FormField): field is NumericField => {
+    const [showGatheredRows, setShowGatheredRows] = useState(false);
+
+    const isNumericField = (field: FormField): field is NumericField => {
 		return ['rangeFrom', 'rangeTo', 'entryPrice'].includes(field as NumericField);
 	};
 
@@ -219,7 +221,7 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
 
 				{/* Earning Rows */}
 				<div>
-					<div className="flex justify-between items-center mb-3">
+					<div className="flex justify-start gap-4 items-center mb-3">
 						<span className="block text-sm font-medium text-slate-300">Earning Periods</span>
 						<button
 							type="button"
@@ -230,7 +232,20 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
 							<Plus className="w-4 h-4" />
 							Add Row
 						</button>
-					</div>
+
+                        <div className="ml-auto">
+                            {formData.earningRows.some((r) => r.gathered === 'yes') && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowGatheredRows((prev) => !prev)}
+                                    className="cursor-pointer text-sm text-emerald-400 hover:text-emerald-300 transition"
+                                >
+                                    {showGatheredRows ? 'Hide Gathered Earnings' : 'Show Gathered Earnings'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
 
 					{formData.earningRows.length === 0 ? (
 						<div className="text-center py-8 text-slate-400">
@@ -245,79 +260,79 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
 							</button>
 						</div>
 					) : (
-						<div className="space-y-3">
-							{formData.earningRows.map((row) => (
-								<div
-									key={row.id}
-									className="grid grid-cols-12 gap-3 items-center p-3 bg-slate-900/70 border border-slate-700 rounded-lg"
-								>
-									<div className="col-span-2">
-										<span className="block text-xs font-medium text-slate-400 mb-1">Start Date</span>
-										<input
-											type="date"
-											value={row.startDate}
-											onChange={(e) => updateEarningRow(row.id, 'startDate', e.target.value)}
-											disabled={isFormDisabled}
-											className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-										/>
-									</div>
-									<div className="col-span-2">
-										<span className="block text-xs font-medium text-slate-400 mb-1">End Date</span>
-										<input
-											type="date"
-											value={row.endDate}
-											onChange={(e) => updateEarningRow(row.id, 'endDate', e.target.value)}
-											disabled={isFormDisabled}
-											className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-										/>
-									</div>
-									<div className="col-span-2">
-										<span className="block text-xs font-medium text-slate-400 mb-1">Principal</span>
-										<input
-											type="number"
-											value={row.principal || 0}
-											onChange={(e) => updateEarningRow(row.id, 'principal', e.target.value)}
-											disabled={isFormDisabled}
-											className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-											placeholder="Principal"
-										/>
-									</div>
-									<div className="col-span-3">
-										<span className="block text-xs font-medium text-slate-400 mb-1">Earnings</span>
-										<input
-											type="number"
-											value={row.earnings}
-											onChange={(e) => updateEarningRow(row.id, 'earnings', e.target.value)}
-											disabled={isFormDisabled}
-											className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-										/>
-									</div>
-									<div className="col-span-2">
-										<span className="block text-xs font-medium text-slate-400 mb-1">Gathered</span>
-										<select
-											value={row.gathered}
-											onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}
-											disabled={isFormDisabled}
-											className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-										>
-											<option value="no">No</option>
-											<option value="yes">Yes</option>
-										</select>
-									</div>
-									<div className="col-span-1 flex justify-end">
-										<button
-											type="button"
-											onClick={() => removeEarningRow(row.id)}
-											disabled={isFormDisabled}
-											className="p-1 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded transition-all disabled:opacity-50"
-											title="Remove this row"
-										>
-											<X className="w-4 h-4" />
-										</button>
-									</div>
-								</div>
-							))}
-						</div>
+                        <div className="space-y-3">
+                                {formData.earningRows.filter((row) => showGatheredRows || row.gathered !== 'yes').map((row) => (
+                                    <div
+                                        key={row.id}
+                                        className="grid grid-cols-12 gap-3 items-center p-3 bg-slate-900/70 border border-slate-700 rounded-lg"
+                                    >
+                                        <div className="col-span-2">
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Start Date</span>
+                                            <input
+                                                type="date"
+                                                value={row.startDate}
+                                                onChange={(e) => updateEarningRow(row.id, 'startDate', e.target.value)}
+                                                disabled={isFormDisabled}
+                                                className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">End Date</span>
+                                            <input
+                                                type="date"
+                                                value={row.endDate}
+                                                onChange={(e) => updateEarningRow(row.id, 'endDate', e.target.value)}
+                                                disabled={isFormDisabled}
+                                                className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Principal</span>
+                                            <input
+                                                type="number"
+                                                value={row.principal || 0}
+                                                onChange={(e) => updateEarningRow(row.id, 'principal', e.target.value)}
+                                                disabled={isFormDisabled}
+                                                className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
+                                                placeholder="Principal"
+                                            />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Earnings</span>
+                                            <input
+                                                type="number"
+                                                value={row.earnings}
+                                                onChange={(e) => updateEarningRow(row.id, 'earnings', e.target.value)}
+                                                disabled={isFormDisabled}
+                                                className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Gathered</span>
+                                            <select
+                                                value={row.gathered}
+                                                onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}
+                                                disabled={isFormDisabled}
+                                                className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
+                                            >
+                                                <option value="no">No</option>
+                                                <option value="yes">Yes</option>
+                                            </select>
+                                        </div>
+                                        <div className="col-span-1 flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeEarningRow(row.id)}
+                                                disabled={isFormDisabled}
+                                                className="p-1 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded transition-all disabled:opacity-50"
+                                                title="Remove this row"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 					)}
 				</div>
 
