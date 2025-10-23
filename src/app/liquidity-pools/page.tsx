@@ -19,6 +19,7 @@ const LiquidityPoolsPage: React.FC = () => {
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [showClosed, setShowClosed] = useState(false);
     const [selectedDex, setSelectedDex] = useState<string>('all');
+    const [sortBy, setSortBy] = useState<'date' | 'apr'>('date');
 
 	const filteredPools = useMemo(
 		() => (showClosed ? pools : pools.filter((p) => p.status !== 'closed')),
@@ -55,12 +56,23 @@ const LiquidityPoolsPage: React.FC = () => {
     }, [poolPositions, selectedDex]);
 
     const sortedPoolPositions = useMemo(() => {
-        return [...filteredByDex].sort(
-            (a, b) => new Date(b.earningRows[0].startDate).getTime() - new Date(a.earningRows[0].startDate).getTime(),
-        );
-    }, [filteredByDex]);
+        const sorted = [...filteredByDex];
 
-	const summary = useMemo(() => calculatePoolsSummary(pools, prices as CoinGeckoPriceResponse), [pools, prices]);
+        if (sortBy === 'apr') {
+            sorted.sort((a, b) => b.calculations.apr - a.calculations.apr);
+        } else {
+            // Default: sort by most recent date
+            sorted.sort(
+                (a, b) =>
+                    new Date(b.earningRows[0].startDate).getTime() -
+                    new Date(a.earningRows[0].startDate).getTime(),
+            );
+        }
+
+        return sorted;
+    }, [filteredByDex, sortBy]);
+
+    const summary = useMemo(() => calculatePoolsSummary(pools, prices as CoinGeckoPriceResponse), [pools, prices]);
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
@@ -104,6 +116,20 @@ const LiquidityPoolsPage: React.FC = () => {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
+                            {/* Sorting Select */}
+                            <div className="relative">
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value as 'date' | 'apr')}
+                                    className="appearance-none cursor-pointer rounded-lg bg-slate-700 text-slate-200 border border-slate-600 py-2 pl-3 pr-10 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                >
+                                    <option value="date">Sort by Date</option>
+                                    <option value="apr">Sort by APR</option>
+                                </select>
+                                <ChevronDown
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                                />
+                            </div>
                             {/* DEX Filter */}
                             <div className="relative">
                                 <select
