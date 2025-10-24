@@ -240,7 +240,7 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
                                     onClick={() => setShowGatheredRows((prev) => !prev)}
                                     className="cursor-pointer text-sm text-emerald-400 hover:text-emerald-300 transition"
                                 >
-                                    {showGatheredRows ? 'Hide Gathered Earnings' : 'Show Gathered Earnings'}
+                                    {showGatheredRows ? 'Hide Claimed Earnings' : 'Show Claimed Earnings'}
                                 </button>
                             )}
                         </div>
@@ -287,14 +287,14 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
                                             />
                                         </div>
                                         <div className="col-span-2">
-                                            <span className="block text-xs font-medium text-slate-400 mb-1">Principal</span>
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Balance</span>
                                             <input
                                                 type="number"
                                                 value={row.principal || 0}
                                                 onChange={(e) => updateEarningRow(row.id, 'principal', e.target.value)}
                                                 disabled={isFormDisabled}
                                                 className="w-full px-3 py-2 text-sm border border-slate-600 bg-slate-800/80 text-slate-100 font-mono rounded focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-slate-700 disabled:text-slate-400"
-                                                placeholder="Principal"
+                                                placeholder="Balance"
                                             />
                                         </div>
                                         <div className="col-span-3">
@@ -308,7 +308,7 @@ const LiquidityPoolCard: React.FC<{ initialData: PoolPosition; price: number }> 
                                             />
                                         </div>
                                         <div className="col-span-2">
-                                            <span className="block text-xs font-medium text-slate-400 mb-1">Gathered</span>
+                                            <span className="block text-xs font-medium text-slate-400 mb-1">Claimed</span>
                                             <select
                                                 value={row.gathered}
                                                 onChange={(e) => updateEarningRow(row.id, 'gathered', e.target.value)}

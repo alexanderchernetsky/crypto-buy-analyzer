@@ -90,7 +90,7 @@ const LiquidityPoolsPage: React.FC = () => {
 								className="cursor-pointer inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
 							>
 								{showCreateForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-								{showCreateForm ? 'Cancel' : 'Create New Position'}
+								{showCreateForm ? 'Cancel' : 'Add Position'}
 							</button>
 						</div>
 					</div>
